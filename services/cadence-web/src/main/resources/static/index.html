@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="cadence-agent-url" content="" />
   <title>Cadence · 任务看板</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>" />
   <link rel="stylesheet" href="app.css" />
@@ -93,6 +94,35 @@
         <span id="selection-hint" class="muted">勾选任务可批量操作</span>
       </div>
     </div>
+  </section>
+
+  <section id="chat" class="chat-panel">
+    <header class="chat-head">
+      <div>
+        <h2>对话</h2>
+        <p id="chat-status" class="muted small">连接中…</p>
+      </div>
+      <button id="btn-chat-clear" class="btn ghost small" title="清空当前对话窗口（不重置会话）">清空</button>
+    </header>
+
+    <div id="chat-log" class="chat-log" aria-live="polite">
+      <div class="chat-empty" id="chat-empty">
+        <p>直接说一句话，例如「今天还有什么没做完？」。</p>
+        <div class="chat-examples">
+          <button class="example" data-example="今天还有什么没做完？">示例：今天还有什么没做完？</button>
+          <button class="example" data-example="把写周报拆成三小步">示例：把写周报拆成三小步</button>
+          <button class="example" data-example="旧任务删掉吧">示例：旧任务删掉吧</button>
+        </div>
+      </div>
+    </div>
+
+    <form id="composer" class="composer">
+      <textarea id="message-input" rows="2" maxlength="2000" placeholder="说一句话…（Enter 发送，Shift+Enter 换行）"></textarea>
+      <div class="composer-actions">
+        <button type="button" id="btn-abort" class="btn ghost small">中止</button>
+        <button type="submit" id="btn-send" class="btn primary">发送</button>
+      </div>
+    </form>
   </section>
 
   <aside class="right">
@@ -282,10 +312,24 @@
   </footer>
 </dialog>
 
+<!-- ============================ Trace 抽屉 ============================ -->
+<dialog id="trace" class="dialog drawer trace-dialog">
+  <div class="dialog-head">
+    <div>
+      <h2>Trace 时间线</h2>
+      <p class="muted small">LLM / TOOL / GUARD / DEGRADE · 点击步骤名展开 detail</p>
+    </div>
+    <button type="button" class="icon-btn" data-close-trace>✕</button>
+  </div>
+  <div class="dialog-body" id="trace-body"></div>
+</dialog>
+
 <div id="toasts" class="toasts"></div>
 <div id="loading" class="loading hidden"><div class="spinner"></div></div>
 
 <script src="api.js"></script>
 <script src="app.js"></script>
+<script src="chat.js"></script>
+<script src="trace.js"></script>
 </body>
 </html>

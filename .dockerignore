@@ -1,0 +1,15 @@
+.git
+.gitignore
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/target
+**/node_modules
+.tmp
+data
+reports
+evals
+services/cadence-agent/tests
+services/cadence-agent/docs
+services/cadence-web/docs

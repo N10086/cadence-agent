@@ -6,7 +6,7 @@ import asyncio
 import time
 from typing import Any
 
-from fastapi import APIRouter, Header, Request
+from fastapi import APIRouter, Header, Query, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from ..deps import get_runtime
@@ -27,15 +27,23 @@ router = APIRouter()
 
 
 @router.get("/stream/{stream_id}")
-async def stream(stream_id: str, request: Request, last_event_id: str | None = Header(None)) -> Any:
+async def stream(
+    stream_id: str,
+    request: Request,
+    last_event_id: str | None = Header(None),
+    last_event_id_query: str | None = Query(None, alias="lastEventId"),
+) -> Any:
     rt = get_runtime()
     buf = rt.streams.get(stream_id)
     if buf is None:
         # 文档：streamId 不存在返回 404，此时仍走统一外壳（SSE 里唯一用 JSON 的错误）
         return JSONResponse(status_code=404, content=fail(404, "stream 不存在或已过期"))
 
+    # 浏览器 EventSource 断线重连会带 Last-Event-ID header；手动新建 EventSource
+    # 时用 ?lastEventId= 传同一个游标（L5 chat.js 的兜底重连）。
+    cursor = last_event_id or last_event_id_query
     try:
-        after = int(last_event_id or 0)
+        after = int(cursor or 0)
     except ValueError:
         after = 0
 

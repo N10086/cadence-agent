@@ -1,42 +1,42 @@
 """SP5 静态契约测试。
 
 SP5 是原生 HTML/JS，没有构建步骤，所以先用"读文件 + 断言 DOM id / API 字符串"
-覆盖那些**不需要浏览器就能判定**的契约；真正交互留给 `e2e.js`/Playwright。
+覆盖那些**不需要浏览器就能判定**的契约；真正交互留给 `e2e.js` / `l5_manual.js`。
 
-现状（2026-11）：
-- 任务板、详情、删除确认、忙闲查询是有的；
-- PRD 要求的对话流、SSE、Trace 抽屉、diff 三组弹窗**没有**。
-因此后半部分用 xfail 把缺口钉住；补齐后 strict xfail 会失败，提醒改成正式断言。
+L5 起对话区、SSE、Trace 抽屉、diff 三组、三栏布局和空状态示例都已落地，
+原先的 7 条 xfail 已转为正式断言。
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 STATIC = Path(__file__).resolve().parents[1] / "src" / "main" / "resources" / "static"
 HTML = (STATIC / "index.html").read_text(encoding="utf-8")
 APP = (STATIC / "app.js").read_text(encoding="utf-8")
 API = (STATIC / "api.js").read_text(encoding="utf-8")
+CHAT = (STATIC / "chat.js").read_text(encoding="utf-8")
+TRACE = (STATIC / "trace.js").read_text(encoding="utf-8")
 CSS = (STATIC / "app.css").read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------
-# 已实现：任务板 / 确认 / API 外壳
+# 任务板 / 确认 / API 外壳
 # ---------------------------------------------------------------------
 
 
 def test_static_assets_exist() -> None:
-    for name in ("index.html", "app.js", "api.js", "app.css"):
+    for name in ("index.html", "app.js", "api.js", "chat.js", "trace.js", "app.css"):
         assert (STATIC / name).is_file(), name
 
 
 def test_no_external_cdn_or_framework() -> None:
     """PRD NFR-3：零依赖，不引 React/Vue/Tailwind CDN。"""
-    assert "react" not in HTML.lower()
-    assert "vue" not in HTML.lower()
-    assert "tailwind" not in HTML.lower()
+    for text in (HTML, CHAT, TRACE):
+        lowered = text.lower()
+        assert "react" not in lowered
+        assert "vue" not in lowered
+        assert "tailwind" not in lowered
     cleaned = HTML.replace("http://www.w3.org/2000/svg", "").replace("https://www.w3.org", "")
     assert "http://" not in cleaned and "https://" not in cleaned
 
@@ -83,52 +83,77 @@ def test_e2e_script_exists() -> None:
 
 
 # ---------------------------------------------------------------------
-# 未实现：对话 / SSE / Trace / diff
+# L5：对话 / SSE / Trace / diff / 三栏 / 空状态
 # ---------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="SP5 FR-1/FR-2：当前页面没有对话区/输入框")
 def test_has_chat_panel() -> None:
-    assert 'id="chat"' in HTML or 'class="chat"' in HTML
-    assert 'id="composer"' in HTML or 'id="message-input"' in HTML
+    assert 'id="chat"' in HTML
+    assert 'id="composer"' in HTML and 'id="message-input"' in HTML
+    assert "chat-log" in HTML
 
 
-@pytest.mark.xfail(strict=True, reason="SP5 FR-3：当前没有 SSE / EventSource / /chat / /stream")
 def test_has_sse_stream() -> None:
-    joined = APP + API
+    joined = CHAT + API
     assert "EventSource" in joined
     assert "/chat" in joined and "/stream" in joined
+    assert "Last-Event-ID" in CHAT or "lastEventId" in CHAT
 
 
-@pytest.mark.xfail(strict=True, reason="SP5 FR-8：当前没有 Trace 抽屉")
 def test_has_trace_drawer() -> None:
     assert 'id="trace"' in HTML
-    assert "traceId" in APP and "时间线" in APP
+    assert "traceId" in TRACE and "时间线" in TRACE
+    assert "trace-timeline" in TRACE and "trace-timeline" in CSS
 
 
-@pytest.mark.xfail(strict=True, reason="SP5 FR-2：当前没有 Enter 发送 / 中止按钮")
 def test_enter_to_send_and_abort() -> None:
-    assert "Enter" in APP
-    assert "abort" in APP.lower() or "中止" in APP
+    assert "Enter" in CHAT
+    assert "中止" in HTML or "中止" in CHAT
+    assert "abort" in CHAT.lower()
+    assert "btn-abort" in HTML
 
 
-@pytest.mark.xfail(strict=True, reason="SP5 FR-5：确认弹窗没有 moved/kept/cannot_fit 三组 diff")
 def test_confirm_diff_has_three_groups() -> None:
-    assert "moved" in APP
-    assert "kept" in APP
-    assert "cannotFit" in APP or "cannot_fit" in APP
+    assert "moved" in CHAT
+    assert "kept" in CHAT
+    assert "cannotFit" in CHAT or "cannot_fit" in CHAT
+    assert "confirm-actions" in CHAT
 
 
-@pytest.mark.xfail(strict=True, reason="SP5 FR-1：PRD 要求左任务板/中对话/右 Trace 三栏，当前是两栏")
 def test_three_column_layout() -> None:
     assert 'class="layout"' in HTML
-    # 三栏应出现三个列定义；当前 .layout 只有两列
     layout = CSS.split(".layout", 1)[1].split("}", 1)[0]
     assert layout.count("1fr") + layout.count("340px") >= 3
 
 
-@pytest.mark.xfail(strict=True, reason="SP5 FR-10：空状态没有 3 个可点击示例指令")
 def test_empty_state_has_three_examples() -> None:
-    lowered = APP.lower()
-    assert "示例" in APP or "example" in lowered
-    assert lowered.count("example") >= 3 or APP.count("示例") >= 3
+    assert CHAT.count("示例") >= 3
+    assert HTML.count("示例") >= 3
+    assert "chat-examples" in HTML and "chat-examples" in CSS
+
+
+def test_agent_url_is_configured_not_hardcoded() -> None:
+    """不硬编码 localhost:18000：?agent= / localStorage / meta / window 都能配。"""
+    assert "localhost:18000" not in CHAT
+    assert "cadence-agent-url" in HTML
+    assert "?agent" in CHAT or "params.get('agent')" in CHAT
+    assert "CadenceChat" in CHAT and "agentBaseUrl" in CHAT
+
+
+def test_chat_renders_seven_events() -> None:
+    for event in ("token", "tool_call", "tool_result", "clarify", "confirm", "done", "error"):
+        assert event in CHAT, event
+
+
+def test_suggestions_three_shapes_are_mapped() -> None:
+    # {hint,reason} / {tool,args} / {field,reason} 统一取标题与副标题
+    assert "s.hint ||" in CHAT
+    assert "s.tool ||" in CHAT
+    assert "s.field ||" in CHAT
+    assert "s.reason ||" in CHAT and "JSON.stringify" in CHAT
+
+
+def test_trace_timeline_kinds() -> None:
+    for kind in ("LLM", "TOOL", "GUARD", "DEGRADE"):
+        assert kind in TRACE, kind
+    assert "durationMs" in TRACE and "tokensIn" in TRACE and "detail" in TRACE

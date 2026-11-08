@@ -1143,7 +1143,6 @@
       return;
     }
 
-    bind();
     initBusyRange();
     await loadTasks();
     await loadBusy();

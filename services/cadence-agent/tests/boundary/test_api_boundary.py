@@ -147,6 +147,33 @@ def test_stream_resume_from_last_event_id(client, runtime) -> None:
     assert all(e["id"] > after for e in resumed)
 
 
+def test_stream_resume_accepts_last_event_id_query(client, runtime) -> None:
+    """L5 chat.js 手动重建 EventSource 时用 ?lastEventId= 兜底（浏览器 header 之外的路径）。"""
+    runtime.llm.load([call("task.search", limit=10), say("查到了")])
+    r = client.post("/chat", json={"sessionId": "s_resume_query", "message": "看看任务"})
+    stream_id = r.json()["data"]["streamId"]
+    first = read_events(client, stream_id)
+    after = first[1]["id"]
+
+    resumed: list[dict] = []
+    with client.stream("GET", f"/stream/{stream_id}", params={"lastEventId": str(after)}) as resp:
+        current: dict = {}
+        for line in resp.iter_lines():
+            if line.startswith("event:"):
+                current["event"] = line.split(":", 1)[1].strip()
+            elif line.startswith("data:"):
+                current["data"] = json.loads(line.split(":", 1)[1].strip())
+            elif line.startswith("id:"):
+                current["id"] = int(line.split(":", 1)[1].strip())
+            elif line == "" and current:
+                resumed.append(current)
+                if current["event"] == "done":
+                    break
+                current = {}
+    assert resumed
+    assert all(e["id"] > after for e in resumed)
+
+
 # =====================================================================
 # /confirm
 # =====================================================================

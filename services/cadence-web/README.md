@@ -2,6 +2,7 @@
 
 > 原生 HTML + CSS + JS，**无构建、零外部依赖**。由 `cadence-core` 直接托管在 `/ui/`。
 > 严格按 [`docs/接口文档.md`](../../docs/接口文档.md) v0.2.0 实现，覆盖 cadence-core **全部 16 个已实现接口**。
+> L5 增加：中间对话区（SSE 7 事件）、Trace 时间线抽屉、confirm diff 三组；任务板/筛选/批量不退化。
 
 ![任务看板](docs/demo-board.png)
 
@@ -17,9 +18,15 @@ docker compose up -d postgres
 cd services/cadence-core
 mvn spring-boot:run
 
-# 3. 打开浏览器（会 302 到 /ui/index.html）
+# 3. Agent（另开终端，对话区需要）
+cd services/cadence-agent
+$env:PYTHONPATH='src'
+.\.venv\Scripts\python.exe -m uvicorn cadence.main:app --port 18000
+
+# 4. 打开浏览器（会 302 到 /ui/index.html）
 Start-Process http://localhost:18080
 ```
+> 也可以直接用根目录的 `docker compose up -d --build` 一键起三件套。
 
 **后端没起也想看界面？** 直接在地址栏加 `?demo`：
 
@@ -28,6 +35,7 @@ http://localhost:18080/ui/index.html?demo
 ```
 
 演示模式用内存数据把每个按钮都点得通（刷新即重置），页面上方会有蓝色提示条。
+对话区在 demo 模式下也走内存假事件（token / tool_call / tool_result / clarify / confirm / done），不连 Agent。
 
 **单独起静态服务器也行**（后端 `/api/**` 已放开 CORS）：
 
@@ -43,16 +51,15 @@ python -m http.server 5500
 
 ```
 ┌──────────────── 顶栏：关键词 / 优先级 / 标签 / 截止 / 条数 / 刷新 / 新建任务 ────────────────┐
-├──────────────────────────────────────────────┬──────────────────────────────────────────────┤
-│  看板：待办 │ 进行中 │ 已完成                     │  忙闲日历：选时间段 → 占用的时段（已合并）      │
-│  卡片：勾选 · 优先级色条 · 截止紧急度 · 时长    │  服务状态：三条连通性探测 + 耗时                │
-│        重复/固定标记 · 标签                   │  接口自测清单：11 项，点右侧文字直接跳到对应操作 │
-│  卡片操作：开始 / 完成 / 取消 / 恢复 /        │                                              │
-│            详情 / 编辑 / 删除                 │                                              │
-├──────────────────────────────────────────────┤                                              │
-│  勾选后出现：全选 · 批量修改 · 按依赖排期 · 导出 │                                              │
-│  底部：已取消列 + 统计                          │                                              │
-└──────────────────────────────────────────────┴──────────────────────────────────────────────┘
+├───────────────────────────────┬───────────────────────────────┬───────────────────────────┤
+│  看板：待办 │ 进行中 │ 已完成    │  对话区：输入一句话 → 工具卡片  │  忙闲日历 / 服务状态       │
+│  卡片：勾选 · 优先级色条 ·     │  · clarify 可点选项           │  接口自测清单              │
+│  截止紧急度 · 时长 · 标签      │  · confirm diff 三组          │                           │
+│  卡片操作：开始/完成/取消/      │  · done 的建议按钮 + trace 入口 │                           │
+│  恢复/详情/编辑/删除            │  · EventSource 断线续传        │                           │
+├───────────────────────────────┤                               │                           │
+│  勾选后：批量修改/按依赖排期/导出 │                               │                           │
+└───────────────────────────────┴───────────────────────────────┴───────────────────────────┘
 ```
 
 | 新建 / 编辑 | 详情抽屉 | 两步删除确认 |
@@ -78,6 +85,9 @@ python -m http.server 5500
 | 忙闲日历 | `GET /api/v1/calendar/busy` | 时间区间里的 `+` 由 `URLSearchParams` 自动编码成 `%2B` |
 | 「重复实例」标签 | `GET .../occurrences` | 把 `rrule` 展开成具体时间点 |
 | 服务状态面板 | 上面几个接口各打一次 | 显示 UP/DOWN 与耗时，帮你在联调时一眼看出是哪条线断了 |
+| 对话区 | `POST {agent}/chat` → `GET {agent}/stream/{id}` | SSE 7 事件；Agent 地址走 `?agent=` / localStorage / meta 配置 |
+| 确认 diff | `POST {agent}/confirm` `{confirmToken, approve}` | `plan.moved / kept / cannotFit` 三组 + 确认/放弃 |
+| Trace 抽屉 | `GET {agent}/trace/{id}` | LLM / TOOL / GUARD / DEGRADE 时间线；点步骤名展开 detail |
 
 ---
 
@@ -109,8 +119,11 @@ python -m http.server 5500
 | `src/main/resources/static/app.css` | 全部样式，无外部字体/CDN |
 | `src/main/resources/static/api.js` | 接口封装：统一解包、错误映射、幂等键、时间格式转换、演示数据 |
 | `src/main/resources/static/app.js` | 页面逻辑：看板、表单、状态流转、两步删除、详情抽屉、批量、忙闲、连通性 |
+| `src/main/resources/static/chat.js` | 对话区：POST /chat、EventSource 7 事件、断线 Last-Event-ID、demo 假事件、confirm diff |
+| `src/main/resources/static/trace.js` | Trace 抽屉：GET /trace/{id}，LLM/TOOL/GUARD/DEGRADE 时间线 |
 | `shots.js` | 截图脚本（Node 18+，零依赖，走 CDP）：`node shots.js` |
 | `e2e.js` | 联真实后端的页面级自测：`node e2e.js`（会建一条任务再删掉） |
+| `l5_manual.js` | L5 手工验收脚本：live 对话/工具卡片/trace + demo confirm diff（`node l5_manual.js`） |
 | `docs/*.png` | 演示模式与真实后端的截图 |
 
 改完保存、刷新浏览器即可，没有构建步骤。

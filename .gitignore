@@ -64,6 +64,7 @@ data/agent/_boundary/
 
 # ---------- 浏览器 e2e 临时 profile（18.9 MB，不是项目内容）----------
 services/cadence-web/docs/.p-e2e/
+services/cadence-web/docs/.p-l5/
 
 # ---------- 临时目录 ----------
 .tmp/
