@@ -102,35 +102,38 @@ python -m evals.cli run --all --llm live --core live --allow-reset `
 
 ---
 
-## 评测结果（2026-11-08 · live + live，benchmark 库）
+## 评测结果（2026-11-08 · live + live，benchmark 库，deepseek-flash）
 
-- 汇总报告：[`evals/reports/2026-11-08-live.md`](evals/reports/2026-11-08-live.md)
-- **逐条逐轮详细报告**：[`evals/reports/2026-11-08-详细.md`](evals/reports/2026-11-08-详细.md)
-  （每条用例含：用户行为、逐轮思考/决策/行为、白名单、实际 vs 标准答案、耗时/token/微元、最终回答）
+- 汇总报告：[`evals/reports/2026-11-08-live-flash.md`](evals/reports/2026-11-08-live-flash.md)
+- **逐条逐轮详细报告**：[`evals/reports/2026-11-08-详细-deepseek-flash.md`](evals/reports/2026-11-08-详细-deepseek-flash.md)
+  （每条用例含：用户行为、逐轮 reasoning/决策/行为、白名单、实际 vs 标准答案、耗时/token/微元、最终回答）
+- 对比（旧的非 reasoning 别名 `deepseek-chat`）：[`2026-11-08-live-chat.md`](evals/reports/2026-11-08-live-chat.md)
 
 | 指标 | 实测 | 目标 | 判定 |
 |---|---:|---:|---|
-| `task_success` | **71.4%**（25/35） | ≥ 80% | ❌ |
-| `tool_name_accuracy` | 88.2% | ≥ 92% | ❌ |
-| `tool_seq_f1` | 90.9% | ≥ 85% | ✅ |
-| `arg_field_accuracy` | 68.8% | ≥ 88% | ❌ |
-| `date_parse_accuracy` | 75.0% | 100% | ❌ |
+| `task_success` | **65.7%**（23/35） | ≥ 80% | ❌ |
+| `tool_name_accuracy` | 90.2% | ≥ 92% | ❌ |
+| `tool_seq_f1` | 88.5% | ≥ 85% | ✅ |
+| `arg_field_accuracy` | 70.3% | ≥ 88% | ❌ |
+| `date_parse_accuracy` | **100%** | 100% | ✅ |
 | `hallucinated_id_rate` | **0.0%** | 0% | ✅ |
 | `unsafe_action_blocked_rate` | **100%** | 100% | ✅ |
 | `injection_resist_rate` | **100%** | 100% | ✅ |
 | `clarification_rate` | 100% | ≥ 70% | ✅ |
-| `latency_p50` / `p95` | 2.8s / 5.4s | 1.8s / 4.5s | ❌ |
-| `cost_per_turn` | ¥0.0170 | ≤ ¥0.01 | ❌ |
+| `latency_p50` / `p95` | 3.3s / 8.6s | 1.8s / 4.5s | ❌ |
+| `cost_per_turn` | ¥0.0200 | ≤ ¥0.01 | ❌ |
 
 **怎么读这张表（如实说明）：**
 
-- 这是 `live+live`：真实 Core（`benchmark` 库）+ 真实 DeepSeek；**没有用 GLM**
-  （`ZHIPU_API_KEY` 为空，`fast`/`reason` 两层是同一个模型）。
-- 10 条失败里，**6 条只是搜索词更具体**（题面写 `keyword=论文`，模型搜 `读论文`；
-  `牛奶`→`买牛奶`、`旧任务`→`旧`），语义等价但严格比对判失败；C2 是模型自拟了子任务；
-  C5/E4 是模型选择反问而不是直接执行。失败明细带字段级 diff 和 `trace_id`。
-- 延迟不达标是单 provider 的直接结果；`cost_per_turn` 略超 ¥0.01 同理。
-- **安全三项（幻觉 id / 危险操作 / 注入）是满分**——护栏层的价值在这里，而不在准确率。
+- 模型是 **`deepseek-flash`**（provider 支持的 flash 模型；`deepseek-v4.1-flash` 会返回
+  400 "supported API model names are deepseek-flash, deepseek-v4-pro"）。
+  它**会返回 `reasoning_content`**，详细报告里的「思考」就是原文。
+- 之前的 `deepseek-chat` 是同一个底层模型的非 reasoning 别名（响应 model 也是
+  `deepseek-flash`，但不返回 reasoning），所以旧报告没有思考内容；两次跑分对比见上面链接。
+- 延迟变高是 reasoning 的代价（p95 5.4s → 8.6s），`cost_per_turn` 也从 ¥0.017 涨到 ¥0.020；
+  换来的是 `date_parse_accuracy` 从 75% 到 100%。
+- 失败项里仍有**搜索词更具体**造成的严格比对失败（`论文`→`读论文` 等），
+  以及 C5/E4 的「模型选择反问」；明细都在详细报告里带字段级 diff。
 
 ---
 

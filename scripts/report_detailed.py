@@ -74,7 +74,7 @@ def steps_block(steps: list[dict]) -> list[str]:
         elif text:
             lines.append(f"- 思考（模型原话）：{text}")
         else:
-            lines.append("- 思考：该步没有自然语言输出，模型直接给出工具调用（DeepSeek 非 reasoning 模型）")
+            lines.append("- 思考：该步未返回 `reasoning_content`（模型直接给出工具调用）")
         tools = d.get("tool_calls") or []
         lines.append(f"- 决策：{'、'.join(f'`{t}`' for t in tools) if tools else '无工具调用（直接回答）'}")
         pending = None
@@ -262,8 +262,8 @@ def main(argv: list[str]) -> int:
         "表里的「可操作白名单」是该用例 seed 出来的全部任务，"
         "「运行中实际可见」是本轮真正进了 guard 白名单的 id。\n"
         "- **微元** = 1e-6 元；成本按整数纳元累加后换算，不做浮点累加。\n"
-        "- 思考过程：DeepSeek 非 reasoning 模型不返回 chain-of-thought，"
-        "若模型没有输出自然语言，只能还原到「它选了哪个工具」。\n"
+        "- 思考过程：`deepseek-flash` 会返回 `reasoning_content`，报告里原样展示（截断 1200 字）；"
+        "某个步骤没有 reasoning，表示该步模型没有展开推理。\n"
     )
 
     out.append("## 总览\n")
@@ -287,7 +287,8 @@ def main(argv: list[str]) -> int:
     for i, row in enumerate(rows, 1):
         out.extend(case_section(row, i))
 
-    path = REPO / "evals" / "reports" / f"{datetime.now():%Y-%m-%d}-详细.md"
+    slug = model.replace(".", "").replace("/", "-")
+    path = REPO / "evals" / "reports" / f"{datetime.now():%Y-%m-%d}-详细-{slug}.md"
     path.write_text("\n".join(out) + "\n", encoding="utf-8")
     print(f"wrote {path}  ({len(out)} lines, {passed}/{total} passed, {micro} micro-yuan)")
     return 0

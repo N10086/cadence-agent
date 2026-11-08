@@ -73,7 +73,7 @@ class Settings(BaseSettings):
 
     deepseek_api_key: str = ""
     deepseek_base_url: str = "https://api.deepseek.com/v1"
-    deepseek_model: str = "deepseek-chat"
+    deepseek_model: str = "deepseek-flash"
     deepseek_timeout_s: float = 0.0
 
     # 路由：只有一个 provider 时，仍然决定"用短提示还是长提示"，

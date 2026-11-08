@@ -285,7 +285,7 @@ class Loop:
                     # 思考过程：DeepSeek 非 reasoning 模型只返回正文；这里保留前 500 字，
                     # 让评测报告能还原"模型在决定调工具前说了什么"。
                     "text": (response.text or "")[:500],
-                    "reasoning": (response.reasoning or "")[:400] or None,
+                    "reasoning": (response.reasoning or "")[:1200] or None,
                     # 该步可见的 id 白名单（由本轮 task.search 结果累积）。
                     "visible_ids": sorted(ctx.visible_task_ids)[:50],
                 },
