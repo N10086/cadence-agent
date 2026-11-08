@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import json
 import time
+
+from .budget import to_nano
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -179,15 +181,16 @@ class TraceRecorder:
     def view(self) -> dict[str, Any]:
         """给 `GET /trace/{id}` 用的结构（对齐 docs/接口文档.md §7.4）。"""
         total_ms = sum(s.duration_ms for s in self.steps)
-        cost = 0.0
+        # 成本按整数纳元累加，避免逐行 float 相加的表示误差。
+        cost_nano = 0
         for s in self.steps:
             if s.kind == KIND_LLM:
-                cost += float(s.detail.get("cost_yuan") or 0.0)
+                cost_nano += to_nano(s.detail.get("cost_yuan") or 0.0)
         return {
             "traceId": self.trace_id,
             "sessionId": self.session_id,
             "totalMs": total_ms,
-            "costYuan": round(cost, 6),
+            "costYuan": round(cost_nano / 1_000_000_000, 6),
             "steps": [
                 {
                     "seq": s.seq,

@@ -1079,7 +1079,7 @@ class Loop:
             degraded=ctx.degraded,
             degrade_reason=ctx.degrade_reason,
             steps=ctx.budget.steps,
-            cost_yuan=round(ctx.budget.cost_yuan, 6),
+            cost_yuan=ctx.budget.cost_yuan,
             tier=ctx.tier,
         )
 
@@ -1105,7 +1105,7 @@ class Loop:
             degraded=ctx.degraded,
             degrade_reason=ctx.degrade_reason,
             steps=ctx.budget.steps,
-            cost_yuan=round(ctx.budget.cost_yuan, 6),
+            cost_yuan=ctx.budget.cost_yuan,
             aborted=code.value,
             tier=ctx.tier,
         )

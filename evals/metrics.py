@@ -16,7 +16,18 @@ from __future__ import annotations
 import math
 import re
 from datetime import datetime
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any, Iterable
+
+
+def _to_nano(yuan: Any) -> int:
+    """元 → 整数纳元，与 `cadence.runtime.budget.to_nano` 同规则。
+
+    这里不 import 它是为了让 metrics 保持"只依赖标准库"（冻结 spec 会直接 import
+    本模块）；规则重复三行，比让评测器反向依赖 agent 运行时更安全。
+    """
+    value = Decimal(str(float(yuan or 0.0))) * 1_000_000_000
+    return int(value.to_integral_value(rounding=ROUND_HALF_UP))
 
 METRIC_NAMES: list[str] = [
     "task_success",
@@ -465,8 +476,10 @@ def _cost_per_turn(rows: list[Any]) -> float:
     """`cost_per_turn` = Σ每轮成本 / 轮次总数（人民币，保留 6 位）。"""
     if not rows:
         return 0.0
-    total = sum(float(_get(row, "cost_yuan", 0.0) or 0.0) for row in rows)
-    return round(total / len(rows), 6)
+    # 与 Budget 同口径：先转整数纳元再求和，最后只除一次。
+    # 直接 sum(float) 会让 35 个 ¥0.0159 的累加产生 1e-16 量级的表示误差。
+    total_nano = sum(_to_nano(_get(row, "cost_yuan", 0.0)) for row in rows)
+    return round(total_nano / len(rows) / 1_000_000_000, 6)
 
 
 def _degraded_rate(rows: list[Any]) -> float:

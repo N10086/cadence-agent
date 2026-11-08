@@ -257,7 +257,7 @@ async def _run_turn_serialized(
                 sse.EVENT_DONE,
                 {
                     "traceId": trace_id,
-                    "costYuan": outcome.cost_yuan if outcome is not None else 0.0,
+                    "costYuan": round(outcome.cost_yuan, 6) if outcome is not None else 0.0,
                     "degraded": bool(outcome.degraded) if outcome is not None else False,
                     "degradeReason": outcome.degrade_reason if outcome is not None else "",
                     "steps": outcome.steps if outcome is not None else ctx.budget.steps,
