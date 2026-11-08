@@ -1,0 +1,67 @@
+# ---------- Java ----------
+target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+
+# ---------- Python ----------
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# ---------- 运行时产物 ----------
+traces/
+cache/
+*.log
+evals/reports/tmp/
+
+# ---------- 工具残留 ----------
+# pip / pytest 在系统临时目录不可写时会把这些临时目录落在当前工作目录里。
+# 它们不是项目内容，随时可删。
+pip-*/
+pip-ephem-wheel-cache-*/
+~ip*
+pytest-of-*/
+.tmp/pytest-of-*/
+.tmp/pip-*/
+.tmp/pt-*/
+
+# ---------- 环境与密钥 ----------
+.env
+.env.local
+*.pem
+*.key
+
+# ---------- IDE ----------
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# ---------- OS ----------
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ---------- 其他 ----------
+node_modules/
+*.orig
+*.rej
+
+# ---------- 覆盖率与测试残留 ----------
+.coverage
+.coverage.*
+htmlcov/
+data/agent/_boundary/
+
+# ---------- 浏览器 e2e 临时 profile（18.9 MB，不是项目内容）----------
+services/cadence-web/docs/.p-e2e/
+
+# ---------- 临时目录 ----------
+.tmp/

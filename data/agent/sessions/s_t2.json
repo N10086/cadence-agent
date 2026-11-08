@@ -1,0 +1,20 @@
+{
+ "session_id": "s_t2",
+ "summary": "",
+ "recent_turns": [
+  {
+   "role": "user",
+   "content": "看看我今天有什么任务",
+   "at": 1794106979.4425018
+  },
+  {
+   "role": "assistant",
+   "content": "我查到了你当前的任务，详情见列表。需要我帮你标记完成其中某一项吗？",
+   "at": 1794106979.4425066
+  }
+ ],
+ "pending_confirm": null,
+ "constraints": {},
+ "last_trace_id": "tr_1a1b91bed730904f187",
+ "updated_at": 1794106979.4425101
+}

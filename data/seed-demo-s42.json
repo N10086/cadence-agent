@@ -1,0 +1,6335 @@
+{
+  "meta": {
+    "seed": 42,
+    "generated_at": "2026-11-04T22:00:00+08:00",
+    "profile": "demo",
+    "timezone": "Asia/Shanghai"
+  },
+  "summary": {
+    "total": 445,
+    "active": 45,
+    "history": 400,
+    "with_start": 445,
+    "with_due": 29,
+    "pinned": 1,
+    "recurring": 6,
+    "with_deps": 5,
+    "done": 400
+  },
+  "tasks": [
+    {
+      "key": "t0001",
+      "title": "写周报",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-15T12:00:00+08:00",
+      "due_at": "2026-11-16T23:59:00+08:00",
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": [
+        "t0033"
+      ]
+    },
+    {
+      "key": "t0002",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-04T09:00:00+08:00",
+      "due_at": "2026-11-05T23:59:00+08:00",
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "study",
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0003",
+      "title": "整理会议纪要",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-16T10:00:00+08:00",
+      "due_at": "2026-11-18T23:59:00+08:00",
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0004",
+      "title": "提交实习申请材料",
+      "priority": "URGENT",
+      "status": "TODO",
+      "start_at": "2026-11-09T12:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "work",
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0005",
+      "title": "背 Java 集合源码",
+      "priority": "HIGH",
+      "status": "TODO",
+      "start_at": "2026-11-13T12:00:00+08:00",
+      "due_at": "2026-11-14T23:59:00+08:00",
+      "estimate_min": 240,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0006",
+      "title": "给笔记本换硅脂",
+      "priority": "LOW",
+      "status": "TODO",
+      "start_at": "2026-11-10T12:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": [
+        "t0012"
+      ]
+    },
+    {
+      "key": "t0007",
+      "title": "读一本闲书",
+      "priority": "LOW",
+      "status": "TODO",
+      "start_at": "2026-11-05T10:00:00+08:00",
+      "due_at": "2026-11-09T23:59:00+08:00",
+      "estimate_min": 240,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0008",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "TODO",
+      "start_at": "2026-11-07T09:00:00+08:00",
+      "due_at": "2026-11-08T23:59:00+08:00",
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0009",
+      "title": "整理 MySQL 慢查询",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-18T14:00:00+08:00",
+      "due_at": "2026-11-23T23:59:00+08:00",
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "life",
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": [
+        "t0030"
+      ]
+    },
+    {
+      "key": "t0010",
+      "title": "复习 Agent 基础概念",
+      "priority": "HIGH",
+      "status": "TODO",
+      "start_at": "2026-11-12T14:00:00+08:00",
+      "due_at": "2026-11-13T23:59:00+08:00",
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "life",
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0011",
+      "title": "准备项目介绍",
+      "priority": "HIGH",
+      "status": "TODO",
+      "start_at": "2026-11-11T12:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 240,
+      "pinned": true,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0012",
+      "title": "刷两道 SQL 题",
+      "priority": "HIGH",
+      "status": "TODO",
+      "start_at": "2026-11-10T10:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0013",
+      "title": "研究 hexo 主题",
+      "priority": "LOW",
+      "status": "TODO",
+      "start_at": "2026-11-08T10:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 240,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0014",
+      "title": "整理会议纪要",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 120,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0015",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "TODO",
+      "start_at": "2026-11-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 240,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0016",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-06T12:00:00+08:00",
+      "due_at": "2026-11-08T23:59:00+08:00",
+      "estimate_min": 180,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0017",
+      "title": "读完《流式系统》第 4 章（周期）",
+      "priority": "HIGH",
+      "status": "TODO",
+      "start_at": "2026-11-14T12:00:00+08:00",
+      "due_at": "2026-11-15T23:59:00+08:00",
+      "estimate_min": 240,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": "FREQ=WEEKLY;BYDAY=MO,WE",
+      "depends_on": []
+    },
+    {
+      "key": "t0018",
+      "title": "调试 Docker 端口冲突（周期）",
+      "priority": "HIGH",
+      "status": "TODO",
+      "start_at": "2026-11-15T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": "FREQ=WEEKLY;BYDAY=MO,WE",
+      "depends_on": []
+    },
+    {
+      "key": "t0019",
+      "title": "看论文：ReAct",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-06T14:00:00+08:00",
+      "due_at": "2026-11-10T23:59:00+08:00",
+      "estimate_min": 180,
+      "pinned": false,
+      "tags": [
+        "interview",
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0020",
+      "title": "整理 MySQL 慢查询",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 360,
+      "pinned": false,
+      "tags": [
+        "study",
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0021",
+      "title": "刷两道 SQL 题（周期）",
+      "priority": "HIGH",
+      "status": "TODO",
+      "start_at": "2026-11-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 120,
+      "pinned": false,
+      "tags": [],
+      "rrule": "FREQ=DAILY;INTERVAL=2",
+      "depends_on": []
+    },
+    {
+      "key": "t0022",
+      "title": "给笔记本换硅脂",
+      "priority": "LOW",
+      "status": "TODO",
+      "start_at": "2026-11-06T14:00:00+08:00",
+      "due_at": "2026-11-10T23:59:00+08:00",
+      "estimate_min": 45,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0023",
+      "title": "读一本闲书",
+      "priority": "LOW",
+      "status": "TODO",
+      "start_at": "2026-11-18T14:00:00+08:00",
+      "due_at": "2026-11-23T23:59:00+08:00",
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0024",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "TODO",
+      "start_at": "2026-11-13T09:00:00+08:00",
+      "due_at": "2026-11-18T23:59:00+08:00",
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0025",
+      "title": "买牛奶",
+      "priority": "LOW",
+      "status": "TODO",
+      "start_at": "2026-11-03T09:00:00+08:00",
+      "due_at": "2026-11-05T23:59:00+08:00",
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0026",
+      "title": "设置数据库索引",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-05T14:00:00+08:00",
+      "due_at": "2026-11-08T23:59:00+08:00",
+      "estimate_min": 240,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0027",
+      "title": "调试 Docker 端口冲突（周期）",
+      "priority": "HIGH",
+      "status": "TODO",
+      "start_at": "2026-11-14T12:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": "FREQ=DAILY;INTERVAL=2",
+      "depends_on": []
+    },
+    {
+      "key": "t0028",
+      "title": "论文初稿提交",
+      "priority": "URGENT",
+      "status": "TODO",
+      "start_at": "2026-11-12T12:00:00+08:00",
+      "due_at": "2026-11-13T23:59:00+08:00",
+      "estimate_min": 45,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": [
+        "t0021"
+      ]
+    },
+    {
+      "key": "t0029",
+      "title": "复习 Redis 缓存策略",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-08T09:00:00+08:00",
+      "due_at": "2026-11-09T23:59:00+08:00",
+      "estimate_min": 360,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0030",
+      "title": "给笔记本换硅脂",
+      "priority": "LOW",
+      "status": "TODO",
+      "start_at": "2026-11-12T10:00:00+08:00",
+      "due_at": "2026-11-15T23:59:00+08:00",
+      "estimate_min": 360,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0031",
+      "title": "整理 MySQL 慢查询",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-05T14:00:00+08:00",
+      "due_at": "2026-11-08T23:59:00+08:00",
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0032",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-15T14:00:00+08:00",
+      "due_at": "2026-11-17T23:59:00+08:00",
+      "estimate_min": 180,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0033",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "TODO",
+      "start_at": "2026-11-09T09:00:00+08:00",
+      "due_at": "2026-11-11T23:59:00+08:00",
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life",
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0034",
+      "title": "看论文（非紧急）（周期）",
+      "priority": "LOW",
+      "status": "TODO",
+      "start_at": "2026-11-17T10:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 45,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": "FREQ=DAILY;INTERVAL=2",
+      "depends_on": []
+    },
+    {
+      "key": "t0035",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-16T10:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 360,
+      "pinned": false,
+      "tags": [
+        "study",
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0036",
+      "title": "整理会议纪要",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-09T12:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 120,
+      "pinned": false,
+      "tags": [
+        "interview",
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0037",
+      "title": "研究 hexo 主题（周期）",
+      "priority": "LOW",
+      "status": "TODO",
+      "start_at": "2026-11-09T14:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": "FREQ=WEEKLY;BYDAY=FR",
+      "depends_on": []
+    },
+    {
+      "key": "t0038",
+      "title": "给笔记本换硅脂",
+      "priority": "LOW",
+      "status": "TODO",
+      "start_at": "2026-11-04T09:00:00+08:00",
+      "due_at": "2026-11-07T23:59:00+08:00",
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0039",
+      "title": "刷两道 SQL 题",
+      "priority": "HIGH",
+      "status": "TODO",
+      "start_at": "2026-10-31T09:00:00+08:00",
+      "due_at": "2026-11-05T23:59:00+08:00",
+      "estimate_min": 240,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0040",
+      "title": "复习 Redis 缓存策略",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-18T12:00:00+08:00",
+      "due_at": "2026-11-19T23:59:00+08:00",
+      "estimate_min": 240,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0041",
+      "title": "看论文：ReAct",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-15T12:00:00+08:00",
+      "due_at": "2026-11-19T23:59:00+08:00",
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0042",
+      "title": "整理 MySQL 慢查询",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-08T12:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "health",
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0043",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-06T09:00:00+08:00",
+      "due_at": "2026-11-11T23:59:00+08:00",
+      "estimate_min": 360,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0044",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "TODO",
+      "start_at": "2026-10-31T09:00:00+08:00",
+      "due_at": "2026-11-01T23:59:00+08:00",
+      "estimate_min": 45,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0045",
+      "title": "写周报",
+      "priority": "NORMAL",
+      "status": "TODO",
+      "start_at": "2026-11-10T10:00:00+08:00",
+      "due_at": "2026-11-11T23:59:00+08:00",
+      "estimate_min": 120,
+      "pinned": false,
+      "tags": [
+        "work",
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": [
+        "t0029"
+      ]
+    },
+    {
+      "key": "t0046",
+      "title": "调试 Docker 端口冲突",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-20T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0047",
+      "title": "背 Java 集合源码",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0048",
+      "title": "整理简历",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-15T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0049",
+      "title": "写周报",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0050",
+      "title": "研究 hexo 主题",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0051",
+      "title": "读一本闲书",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0052",
+      "title": "复习 Redis 缓存策略",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-26T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0053",
+      "title": "更新 PRD 的接口章节",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-20T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0054",
+      "title": "复习 Agent 基础概念",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-03T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0055",
+      "title": "调试 Docker 端口冲突",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-27T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0056",
+      "title": "看论文：ReAct",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-09T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0057",
+      "title": "刷两道 SQL 题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-03T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0058",
+      "title": "跑一次全量测试",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-10T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0059",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0060",
+      "title": "整理会议纪要",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-16T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0061",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-29T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0062",
+      "title": "买牛奶",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0063",
+      "title": "看论文（非紧急）",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-27T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0064",
+      "title": "买牛奶",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0065",
+      "title": "清理旧分支",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0066",
+      "title": "设置数据库索引",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-28T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0067",
+      "title": "清理旧分支",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0068",
+      "title": "整理简历",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-14T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0069",
+      "title": "回复邮件",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-06T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0070",
+      "title": "更新 PRD 的接口章节",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-27T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0071",
+      "title": "更新 PRD 的接口章节",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-11-02T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0072",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-18T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0073",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0074",
+      "title": "整理相册",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-23T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0075",
+      "title": "复习 Redis 缓存策略",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-30T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0076",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-18T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0077",
+      "title": "写周报",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0078",
+      "title": "买牛奶",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0079",
+      "title": "更新 PRD 的接口章节",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-03T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0080",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-13T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0081",
+      "title": "整理相册",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-27T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0082",
+      "title": "修 CI 的 flaky test",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-11T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0083",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-10T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0084",
+      "title": "背 Java 集合源码",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-30T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0085",
+      "title": "读一本闲书",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-03T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0086",
+      "title": "读一本闲书",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-10T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0087",
+      "title": "读一本闲书",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0088",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-12T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0089",
+      "title": "看论文（非紧急）",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-29T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0090",
+      "title": "复习 Agent 基础概念",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-21T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0091",
+      "title": "刷两道 SQL 题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-21T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0092",
+      "title": "整理桌面文件",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-21T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0093",
+      "title": "研究 hexo 主题",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-15T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0094",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0095",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0096",
+      "title": "清理旧分支",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0097",
+      "title": "整理桌面文件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-11T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0098",
+      "title": "整理桌面文件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0099",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0100",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-28T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0101",
+      "title": "写周报",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-08T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0102",
+      "title": "研究 hexo 主题",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-13T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0103",
+      "title": "给笔记本换硅脂",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-27T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0104",
+      "title": "回复邮件",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0105",
+      "title": "准备项目介绍",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-08T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0106",
+      "title": "写周报",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-18T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0107",
+      "title": "修 CI 的 flaky test",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-09T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0108",
+      "title": "给笔记本换硅脂",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-29T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0109",
+      "title": "更新 PRD 的接口章节",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-21T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0110",
+      "title": "准备反问面试官的问题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-20T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0111",
+      "title": "给笔记本换硅脂",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0112",
+      "title": "准备反问面试官的问题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-28T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0113",
+      "title": "整理会议纪要",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-02T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0114",
+      "title": "写单元测试",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-11T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0115",
+      "title": "设置数据库索引",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-29T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0116",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-30T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0117",
+      "title": "复习 Agent 基础概念",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0118",
+      "title": "买牛奶",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0119",
+      "title": "清理旧分支",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0120",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0121",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-03T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0122",
+      "title": "整理桌面文件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-16T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0123",
+      "title": "买牛奶",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-21T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0124",
+      "title": "刷两道 SQL 题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-16T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0125",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0126",
+      "title": "整理相册",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-06T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0127",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-29T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0128",
+      "title": "看论文（非紧急）",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0129",
+      "title": "调试 Docker 端口冲突",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0130",
+      "title": "研究 hexo 主题",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-12T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0131",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-16T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0132",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0133",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-15T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0134",
+      "title": "准备项目介绍",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0135",
+      "title": "买牛奶",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-11T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0136",
+      "title": "设置数据库索引",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0137",
+      "title": "更新 PRD 的接口章节",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-28T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0138",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0139",
+      "title": "复习 Redis 缓存策略",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0140",
+      "title": "复习 Redis 缓存策略",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-11T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0141",
+      "title": "设置数据库索引",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-08T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0142",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-06T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0143",
+      "title": "跑一次全量测试",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0144",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-11-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0145",
+      "title": "看论文：ReAct",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-10T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0146",
+      "title": "读一本闲书",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-06T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0147",
+      "title": "看论文（非紧急）",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-11T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0148",
+      "title": "研究 hexo 主题",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-02T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0149",
+      "title": "整理简历",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-12T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0150",
+      "title": "给笔记本换硅脂",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-20T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0151",
+      "title": "清理旧分支",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0152",
+      "title": "整理相册",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-30T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0153",
+      "title": "背 Java 集合源码",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-11-02T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0154",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-21T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0155",
+      "title": "买牛奶",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0156",
+      "title": "复习 Redis 缓存策略",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-14T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0157",
+      "title": "看论文（非紧急）",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-29T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0158",
+      "title": "写单元测试",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0159",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-10T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0160",
+      "title": "准备项目介绍",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-12T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0161",
+      "title": "设置数据库索引",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0162",
+      "title": "设置数据库索引",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0163",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-27T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0164",
+      "title": "复习 Redis 缓存策略",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-18T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0165",
+      "title": "整理会议纪要",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-28T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0166",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-26T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0167",
+      "title": "研究 hexo 主题",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0168",
+      "title": "写周报",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-26T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0169",
+      "title": "买牛奶",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-18T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0170",
+      "title": "给笔记本换硅脂",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-11-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0171",
+      "title": "更新 PRD 的接口章节",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0172",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0173",
+      "title": "看论文（非紧急）",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0174",
+      "title": "看论文：ReAct",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-27T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0175",
+      "title": "复习 Redis 缓存策略",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-02T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0176",
+      "title": "研究 hexo 主题",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-18T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0177",
+      "title": "修 CI 的 flaky test",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-16T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0178",
+      "title": "整理 MySQL 慢查询",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-06T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0179",
+      "title": "写单元测试",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0180",
+      "title": "整理会议纪要",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-12T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0181",
+      "title": "更新 PRD 的接口章节",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0182",
+      "title": "看论文：ReAct",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-08T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0183",
+      "title": "更新 PRD 的接口章节",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-23T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0184",
+      "title": "写单元测试",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-20T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0185",
+      "title": "准备反问面试官的问题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0186",
+      "title": "清理旧分支",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0187",
+      "title": "准备项目介绍",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-06T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0188",
+      "title": "整理相册",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0189",
+      "title": "给笔记本换硅脂",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-31T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0190",
+      "title": "给笔记本换硅脂",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-11-03T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0191",
+      "title": "买牛奶",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0192",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-11T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0193",
+      "title": "整理会议纪要",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0194",
+      "title": "看论文（非紧急）",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-14T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0195",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-02T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0196",
+      "title": "更新 PRD 的接口章节",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-20T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0197",
+      "title": "背 Java 集合源码",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-28T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0198",
+      "title": "复习 Agent 基础概念",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0199",
+      "title": "研究 hexo 主题",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0200",
+      "title": "看论文：ReAct",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-11-03T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0201",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-16T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0202",
+      "title": "复习 Agent 基础概念",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-16T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0203",
+      "title": "准备项目介绍",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-09T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0204",
+      "title": "准备反问面试官的问题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0205",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-11-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0206",
+      "title": "更新 PRD 的接口章节",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-23T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0207",
+      "title": "准备反问面试官的问题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-20T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0208",
+      "title": "整理会议纪要",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-06T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0209",
+      "title": "整理 MySQL 慢查询",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-28T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0210",
+      "title": "清理旧分支",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0211",
+      "title": "研究 hexo 主题",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-18T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0212",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0213",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-26T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0214",
+      "title": "整理 MySQL 慢查询",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0215",
+      "title": "复习 Agent 基础概念",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-30T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0216",
+      "title": "整理 MySQL 慢查询",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0217",
+      "title": "修 CI 的 flaky test",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0218",
+      "title": "刷两道 SQL 题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-31T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0219",
+      "title": "整理桌面文件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0220",
+      "title": "复习 Redis 缓存策略",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0221",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0222",
+      "title": "整理会议纪要",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0223",
+      "title": "背 Java 集合源码",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-28T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0224",
+      "title": "设置数据库索引",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-09T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0225",
+      "title": "写单元测试",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0226",
+      "title": "更新 PRD 的接口章节",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-13T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0227",
+      "title": "给笔记本换硅脂",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0228",
+      "title": "研究 hexo 主题",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-06T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0229",
+      "title": "清理旧分支",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-18T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0230",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0231",
+      "title": "给笔记本换硅脂",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-20T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0232",
+      "title": "整理简历",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-18T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0233",
+      "title": "调试 Docker 端口冲突",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0234",
+      "title": "修 CI 的 flaky test",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0235",
+      "title": "调试 Docker 端口冲突",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-31T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0236",
+      "title": "研究 hexo 主题",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0237",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-15T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0238",
+      "title": "给笔记本换硅脂",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0239",
+      "title": "更新 PRD 的接口章节",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-20T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0240",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-13T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0241",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-31T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0242",
+      "title": "买牛奶",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-06T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0243",
+      "title": "研究 hexo 主题",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0244",
+      "title": "看论文：ReAct",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-09T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0245",
+      "title": "整理桌面文件",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-11T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0246",
+      "title": "整理 MySQL 慢查询",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0247",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0248",
+      "title": "复习 Redis 缓存策略",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-11T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0249",
+      "title": "调试 Docker 端口冲突",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0250",
+      "title": "更新 PRD 的接口章节",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-27T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0251",
+      "title": "准备项目介绍",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-11T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0252",
+      "title": "看论文：ReAct",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-15T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0253",
+      "title": "买牛奶",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-31T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0254",
+      "title": "清理旧分支",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0255",
+      "title": "写单元测试",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0256",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-06T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0257",
+      "title": "复习 Redis 缓存策略",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0258",
+      "title": "读一本闲书",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0259",
+      "title": "调试 Docker 端口冲突",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0260",
+      "title": "设置数据库索引",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-28T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0261",
+      "title": "设置数据库索引",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0262",
+      "title": "准备反问面试官的问题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-12T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0263",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0264",
+      "title": "准备反问面试官的问题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0265",
+      "title": "整理会议纪要",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0266",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-13T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0267",
+      "title": "更新 PRD 的接口章节",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0268",
+      "title": "跑一次全量测试",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-10T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0269",
+      "title": "复习 Redis 缓存策略",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-16T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0270",
+      "title": "设置数据库索引",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0271",
+      "title": "研究 hexo 主题",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-18T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0272",
+      "title": "准备项目介绍",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-29T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0273",
+      "title": "写周报",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-12T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0274",
+      "title": "给笔记本换硅脂",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0275",
+      "title": "写周报",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0276",
+      "title": "看论文：ReAct",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0277",
+      "title": "整理桌面文件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0278",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-23T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0279",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-12T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0280",
+      "title": "整理相册",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-30T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0281",
+      "title": "看论文：ReAct",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0282",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0283",
+      "title": "跑一次全量测试",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0284",
+      "title": "整理会议纪要",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-18T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0285",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-18T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0286",
+      "title": "复习 Agent 基础概念",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-31T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0287",
+      "title": "给笔记本换硅脂",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-13T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0288",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-29T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0289",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-18T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0290",
+      "title": "整理会议纪要",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-13T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0291",
+      "title": "修 CI 的 flaky test",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-29T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0292",
+      "title": "复习 Agent 基础概念",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-16T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0293",
+      "title": "整理相册",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-03T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0294",
+      "title": "看论文（非紧急）",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0295",
+      "title": "整理简历",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0296",
+      "title": "整理会议纪要",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-16T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0297",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-30T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0298",
+      "title": "背 Java 集合源码",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0299",
+      "title": "看论文（非紧急）",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0300",
+      "title": "刷两道 SQL 题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-03T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0301",
+      "title": "整理 MySQL 慢查询",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0302",
+      "title": "准备项目介绍",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-11-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0303",
+      "title": "设置数据库索引",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-21T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0304",
+      "title": "看论文：ReAct",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0305",
+      "title": "研究 hexo 主题",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-09T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0306",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-29T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0307",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0308",
+      "title": "调试 Docker 端口冲突",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-29T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0309",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0310",
+      "title": "研究 hexo 主题",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-30T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0311",
+      "title": "看论文（非紧急）",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-29T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0312",
+      "title": "调试 Docker 端口冲突",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-15T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0313",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-14T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0314",
+      "title": "背 Java 集合源码",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0315",
+      "title": "清理旧分支",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0316",
+      "title": "看论文：ReAct",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0317",
+      "title": "看论文：ReAct",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-21T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0318",
+      "title": "修 CI 的 flaky test",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-30T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0319",
+      "title": "整理会议纪要",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-08T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0320",
+      "title": "整理简历",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0321",
+      "title": "研究 hexo 主题",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0322",
+      "title": "准备反问面试官的问题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-28T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0323",
+      "title": "调试 Docker 端口冲突",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-10T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0324",
+      "title": "看论文：ReAct",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0325",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0326",
+      "title": "看论文：ReAct",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0327",
+      "title": "清理旧分支",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-28T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0328",
+      "title": "看论文（非紧急）",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-27T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0329",
+      "title": "复习 Redis 缓存策略",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-08T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0330",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-21T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0331",
+      "title": "修 CI 的 flaky test",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0332",
+      "title": "整理 MySQL 慢查询",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-10T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0333",
+      "title": "更新 PRD 的接口章节",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0334",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-11-03T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0335",
+      "title": "整理简历",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-03T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0336",
+      "title": "整理桌面文件",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-10T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0337",
+      "title": "给笔记本换硅脂",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-11T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0338",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0339",
+      "title": "清理旧分支",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-23T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0340",
+      "title": "刷两道 SQL 题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-13T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0341",
+      "title": "给笔记本换硅脂",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0342",
+      "title": "整理会议纪要",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-11-02T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0343",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0344",
+      "title": "准备项目介绍",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-10T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0345",
+      "title": "整理简历",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-23T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0346",
+      "title": "写周报",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0347",
+      "title": "设置数据库索引",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0348",
+      "title": "回复邮件",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0349",
+      "title": "清理旧分支",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0350",
+      "title": "研究 hexo 主题",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-06T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0351",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-31T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0352",
+      "title": "整理相册",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-29T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0353",
+      "title": "修 CI 的 flaky test",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0354",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0355",
+      "title": "整理 MySQL 慢查询",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0356",
+      "title": "修 CI 的 flaky test",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0357",
+      "title": "复习 Agent 基础概念",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-23T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0358",
+      "title": "复习 Agent 基础概念",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-06T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0359",
+      "title": "写周报",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-14T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0360",
+      "title": "更新 PRD 的接口章节",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-29T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0361",
+      "title": "整理桌面文件",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0362",
+      "title": "给笔记本换硅脂",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-12T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0363",
+      "title": "准备反问面试官的问题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0364",
+      "title": "设置数据库索引",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-12T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0365",
+      "title": "刷两道 SQL 题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-28T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0366",
+      "title": "复习 Redis 缓存策略",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-26T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0367",
+      "title": "设置数据库索引",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-06T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0368",
+      "title": "更新 PRD 的接口章节",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-30T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0369",
+      "title": "清理旧分支",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-26T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0370",
+      "title": "看论文（非紧急）",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-03T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0371",
+      "title": "看论文（非紧急）",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-30T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0372",
+      "title": "整理会议纪要",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0373",
+      "title": "回复邮件",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-12T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0374",
+      "title": "更新 PRD 的接口章节",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-15T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0375",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-13T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0376",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-26T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0377",
+      "title": "研究 hexo 主题",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-26T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0378",
+      "title": "调试 Docker 端口冲突",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-11T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0379",
+      "title": "整理会议纪要",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-08T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0380",
+      "title": "读一本闲书",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-27T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0381",
+      "title": "整理桌面文件",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-15T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0382",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-08T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0383",
+      "title": "读一本闲书",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-07-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0384",
+      "title": "整理相册",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-14T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0385",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-27T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0386",
+      "title": "准备项目介绍",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0387",
+      "title": "更新 PRD 的接口章节",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0388",
+      "title": "写周报",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-11-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0389",
+      "title": "整理相册",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0390",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0391",
+      "title": "刷两道 SQL 题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-06T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0392",
+      "title": "写单元测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-03T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0393",
+      "title": "看论文（非紧急）",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-28T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0394",
+      "title": "研究 hexo 主题",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-12T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0395",
+      "title": "读一本闲书",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-11-02T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0396",
+      "title": "读完《流式系统》第 4 章",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-11T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0397",
+      "title": "复习 Agent 基础概念",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-11-02T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0398",
+      "title": "刷两道 SQL 题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-23T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0399",
+      "title": "读一本闲书",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0400",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0401",
+      "title": "整理相册",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-06T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0402",
+      "title": "跑一次全量测试",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-23T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0403",
+      "title": "复习 Agent 基础概念",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-27T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0404",
+      "title": "准备反问面试官的问题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-18T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0405",
+      "title": "读一本闲书",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0406",
+      "title": "写周报",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-08T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0407",
+      "title": "读一本闲书",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-11-01T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0408",
+      "title": "修 CI 的 flaky test",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-14T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0409",
+      "title": "研究 hexo 主题",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-15T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0410",
+      "title": "整理相册",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-09T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0411",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-27T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0412",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-05T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0413",
+      "title": "背 Java 集合源码",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0414",
+      "title": "研究 hexo 主题",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-30T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0415",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0416",
+      "title": "复习 Redis 缓存策略",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0417",
+      "title": "给笔记本换硅脂",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-23T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0418",
+      "title": "复习 Agent 基础概念",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-10-21T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0419",
+      "title": "整理会议纪要",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0420",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-12T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0421",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-08T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0422",
+      "title": "写周报",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-26T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0423",
+      "title": "更新 PRD 的接口章节",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-13T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0424",
+      "title": "准备项目介绍",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-26T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "study"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0425",
+      "title": "整理简历",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-08-19T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0426",
+      "title": "买牛奶",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-26T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0427",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-24T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0428",
+      "title": "整理会议纪要",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-26T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0429",
+      "title": "整理会议纪要",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-14T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0430",
+      "title": "跑一次全量测试",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-09-23T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0431",
+      "title": "修 CI 的 flaky test",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0432",
+      "title": "复习 Redis 缓存策略",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-08-02T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0433",
+      "title": "更新 PRD 的接口章节",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0434",
+      "title": "写周报",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-04T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0435",
+      "title": "看论文：ReAct",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-07T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "life"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0436",
+      "title": "设置数据库索引",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-07-25T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0437",
+      "title": "设置数据库索引",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-08-11T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0438",
+      "title": "写技术博客：Spring Boot 3 升级",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-30T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0439",
+      "title": "写周报",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-22T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 30,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0440",
+      "title": "准备反问面试官的问题",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-09-17T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0441",
+      "title": "看论文：ReAct",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-31T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0442",
+      "title": "研究 hexo 主题",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-10-20T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [
+        "interview"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0443",
+      "title": "整理简历",
+      "priority": "HIGH",
+      "status": "DONE",
+      "start_at": "2026-07-26T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 90,
+      "pinned": false,
+      "tags": [
+        "health"
+      ],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0444",
+      "title": "复习 Redis 缓存策略",
+      "priority": "LOW",
+      "status": "DONE",
+      "start_at": "2026-09-08T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 60,
+      "pinned": false,
+      "tags": [],
+      "rrule": null,
+      "depends_on": []
+    },
+    {
+      "key": "t0445",
+      "title": "清理旧分支",
+      "priority": "NORMAL",
+      "status": "DONE",
+      "start_at": "2026-10-29T09:00:00+08:00",
+      "due_at": null,
+      "estimate_min": 15,
+      "pinned": false,
+      "tags": [
+        "deep-work"
+      ],
+      "rrule": null,
+      "depends_on": []
+    }
+  ]
+}

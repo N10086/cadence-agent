@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cadence-postgres
+    environment:
+      POSTGRES_DB: TODO
+      POSTGRES_USER: cadence
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-cadence}
+      # 容器内建库用 UTF8 + 中文排序安全
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5433:5432"
+    volumes:
+      - cadence_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cadence -d TODO"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  cadence_pgdata:
+    name: cadence_pgdata

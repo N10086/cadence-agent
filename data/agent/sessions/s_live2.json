@@ -1,0 +1,15 @@
+{
+ "session_id": "s_live2",
+ "summary": "",
+ "recent_turns": [
+  {
+   "role": "user",
+   "content": "看看我今天有什么任务",
+   "at": 1794107024.6314776
+  }
+ ],
+ "pending_confirm": null,
+ "constraints": {},
+ "last_trace_id": "tr_1a1b91c8f9ad4332285",
+ "updated_at": 1794107024.631483
+}

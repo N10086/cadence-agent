@@ -1,0 +1,152 @@
+"""工具 schema 的边界测试。
+
+这一层的 bug 不会在单元测试里炸，但会让真实模型**永远调不对**工具：
+schema 少一个 required 字段，模型只能猜；schema 多一个不存在的字段，模型照着填。
+"""
+
+from __future__ import annotations
+
+import json
+
+import pytest
+
+from cadence.guard.permissions import FORBIDDEN_TOOLS
+from cadence.tools.registry import _strip_titles, build_default_registry, provider_name, tool_schema
+
+
+@pytest.fixture
+def registry():
+    return build_default_registry()
+
+
+def schema(registry, name: str) -> dict:
+    return next(t for t in registry.openai_tools() if t["function"]["name"] == provider_name(name))
+
+
+def test_exposes_nine_tools(registry) -> None:
+    # 11 个注册，2 个 SP3 桩不暴露
+    assert len(registry) == 11
+    assert len(registry.openai_tools()) == 9
+    assert {t["function"]["name"] for t in registry.openai_tools()} == {
+        "task_search",
+        "task_create",
+        "task_update",
+        "task_complete",
+        "task_delete",
+        "task_split",
+        "schedule_busy",
+        "meta_clarify",
+        "meta_finish",
+    }
+
+
+def test_all_tools_are_valid_provider_names(registry) -> None:
+    for t in registry.openai_tools():
+        name = t["function"]["name"]
+        assert name.replace("_", "").replace("-", "").isalnum()
+        assert "." not in name
+
+
+def test_forbidden_tools_never_registered(registry) -> None:
+    for forbidden in FORBIDDEN_TOOLS:
+        assert forbidden not in registry
+        assert all(t["function"]["name"] != provider_name(forbidden) for t in registry.openai_tools())
+
+
+@pytest.mark.xfail(strict=True, reason="BUG-SP2-01：_strip_titles 误删名为 title 的字段属性")
+def test_task_create_title_property_present(registry) -> None:
+    """BUG-SP2-01：_strip_titles 会删掉所有叫 title 的键，包括真正的字段。"""
+    params = schema(registry, "task.create")["function"]["parameters"]
+    assert "title" in params.get("properties", {}), (
+        "task.create 的 title 属性被 _strip_titles 误删了，"
+        "但 required 里仍然有 title —— provider 会收到一个自相矛盾的 schema"
+    )
+
+
+def test_bug_task_create_title_property_is_missing_but_required(registry) -> None:
+    params = schema(registry, "task.create")["function"]["parameters"]
+    assert "title" not in params.get("properties", {})
+    assert "title" in params.get("required", [])
+
+
+@pytest.mark.xfail(strict=True, reason="BUG-SP2-01：嵌套 ChildTask.title 同样被删")
+def test_task_split_child_title_property_present(registry) -> None:
+    """BUG-SP2-01 的连带影响：嵌套 ChildTask 的 title 也被删。"""
+    params = schema(registry, "task.split")["function"]["parameters"]
+    child = params["$defs"]["ChildTask"]
+    assert "title" in child.get("properties", {})
+
+
+def test_non_title_fields_are_preserved(registry) -> None:
+    params = schema(registry, "task.create")["function"]["parameters"]
+    for field in ("description", "priority", "due_at", "estimate_min", "parent_id", "tags"):
+        assert field in params.get("properties", {}), field
+
+
+def test_bug_strip_titles_removes_field_named_title() -> None:
+    """单元级复现：函数无法区分 pydantic 的 "title" 元数据和名为 title 的字段。"""
+    node = {
+        "properties": {
+            "title": {"title": "Title", "type": "string"},
+            "due_at": {"title": "Due At", "type": "string"},
+        },
+        "title": "TaskCreateArgs",
+    }
+    stripped = _strip_titles(node)
+    assert "title" not in stripped["properties"], "当前实现的错误行为：字段名 title 被当成元数据删掉"
+    assert "due_at" in stripped["properties"]
+
+
+def test_schema_is_json_serializable(registry) -> None:
+    for t in registry.openai_tools():
+        json.dumps(t, ensure_ascii=False)
+
+
+def test_delete_and_split_descriptions_contain_taboos(registry) -> None:
+    delete = schema(registry, "task.delete")["function"]["description"]
+    split = schema(registry, "task.split")["function"]["description"]
+    assert "禁止" in delete and "确认" in delete
+    assert "7" in split and "重新分解" in split
+
+
+def test_defaults_are_explicit(registry) -> None:
+    params = schema(registry, "task.create")["function"]["parameters"]
+    assert params["properties"]["priority"]["default"] == "normal"
+    # TaskSearchArgs.limit 默认 10；TaskSplitArgs.dry_run 默认 True
+    search = schema(registry, "task.search")["function"]["parameters"]
+    assert search["properties"]["limit"]["default"] == 10
+    split = schema(registry, "task.split")["function"]["parameters"]
+    assert split["properties"]["dry_run"]["default"] is True
+
+
+def test_schema_size_regression_guard(registry) -> None:
+    # 防止某次改动把 schema 撑到不可接受；具体预算见下一条
+    assert registry.schema_token_estimate() < 3500
+
+
+@pytest.mark.xfail(strict=True, reason="BUG-SP2-31：PRD 给工具 schema 的预算是 700 token，"
+                                       "实测粗估约 2256（9 个工具），会挤占上下文预算")
+def test_schema_size_within_prd_budget(registry) -> None:
+    assert registry.schema_token_estimate() <= 700
+
+
+def test_plan_tools_are_registered_but_not_exposed(registry) -> None:
+    assert "plan.reschedule" in registry
+    assert "plan.apply" in registry
+    exposed = {t["function"]["name"] for t in registry.openai_tools()}
+    assert "plan_reschedule" not in exposed
+    assert "plan_apply" not in exposed
+
+
+def test_tool_schema_keeps_required_fields(registry) -> None:
+    for name, required in {
+        "task.create": {"title"},
+        "task.update": {"task_id", "version", "patch"},
+        "task.complete": {"task_id", "version"},
+        "task.delete": {"task_id"},
+        "task.split": {"children"},
+        "meta.finish": {"message"},
+        "meta.clarify": {"question"},
+    }.items():
+        params = schema(registry, name)["function"]["parameters"]
+        assert required.issubset(set(params.get("required", []))), name

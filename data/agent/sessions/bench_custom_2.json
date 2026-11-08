@@ -1,0 +1,20 @@
+{
+ "session_id": "bench_custom_2",
+ "summary": "",
+ "recent_turns": [
+  {
+   "role": "user",
+   "content": "看看我今天有什么任务",
+   "at": 1794107509.359754
+  },
+  {
+   "role": "assistant",
+   "content": "今天（11月8日）没有截止的任务，日程是空的。\n\n（注意：其中有些动作我其实没有执行成功，请以任务列表实际状态为准。）",
+   "at": 1794107509.359756
+  }
+ ],
+ "pending_confirm": null,
+ "constraints": {},
+ "last_trace_id": "tr_1a1b92402185ca06b50",
+ "updated_at": 1794107509.3597574
+}

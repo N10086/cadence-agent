@@ -1,0 +1,705 @@
+openapi: 3.1.0
+info:
+  title: Cadence Core API
+  version: 0.2.0
+  description: |
+    传统任务后端的契约。这是 Core 与 Agent 之间唯一的通信方式。
+
+    设计约束（详见 PRD/02-architecture.md）：
+      - 本 API 不认识任何 AI。删掉 Agent，它照常工作。
+      - 所有时间一律 ISO-8601 带偏移，服务端以 Asia/Shanghai 输出。
+      - 所有写操作必须带 version（乐观锁）。版本不符返回 409。
+      - 所有响应统一外壳 {code, message, data}（v0.2.0 起）：
+          code=0 表示成功；code>0 时等于 HTTP 状态码，data 缺省。
+      - 人类可读的接口文档见 docs/接口文档.md，本文件是机器可读的真相。
+
+    ⚠️ v0.1.0 → v0.2.0 破坏性变更：
+      - 成功响应由裸对象改为 {code, message, data} 外壳（data 内字段不变）
+      - 错误响应由 {code:string, message, recoverable, ...} 改为 {code:number, message}
+      - 删除接口 403 响应的确认令牌从 suggestions[0].value 移到 data.confirmToken
+
+servers:
+  - url: http://localhost:18080
+
+tags:
+  - name: task
+  - name: calendar
+
+paths:
+  /api/v1/tasks:
+    get:
+      tags: [task]
+      operationId: listTasks
+      summary: 查询任务
+      description: 所有过滤条件可组合；已软删除的任务永不返回。
+      parameters:
+        - { name: id, in: query, schema: { type: string } }
+        - { name: keyword, in: query, schema: { type: string }, description: 标题模糊匹配，忽略大小写 }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/TaskStatus' } }
+        - { name: priority, in: query, schema: { $ref: '#/components/schemas/Priority' } }
+        - { name: dueBefore, in: query, schema: { type: string, format: date-time } }
+        - { name: dueAfter, in: query, schema: { type: string, format: date-time } }
+        - { name: tag, in: query, schema: { type: string } }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+      responses:
+        '200':
+          description: 任务列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskListResponse'
+    post:
+      tags: [task]
+      operationId: createTask
+      summary: 创建任务
+      parameters:
+        - { $ref: '#/components/parameters/XActor' }
+        - { $ref: '#/components/parameters/XIdempotencyKey' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TaskCreateRequest' }
+      responses:
+        '201':
+          description: '已创建（重放时带响应头 Idempotent-Replayed: true）'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskCreatedResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/v1/tasks/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [task]
+      operationId: getTask
+      summary: 单任务详情（含依赖与冲突）
+      responses:
+        '200':
+          description: 任务详情
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskDetailResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [task]
+      operationId: patchTask
+      summary: 局部更新
+      description: |
+        version 必填。任何字段为 null 表示不修改。
+        版本不符返回 409 CONFLICT —— Agent 应重新 search 拿到最新 version 后重试。
+        成功时 data 为 {task, warnings}；warnings 是"写成功了但时间有重叠"的提示，不是错误。
+      parameters:
+        - { $ref: '#/components/parameters/XActor' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TaskPatchRequest' }
+      responses:
+        '200':
+          description: 更新后的任务 + 冲突警告
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskPatchResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    delete:
+      tags: [task]
+      operationId: deleteTask
+      summary: 软删除（两阶段确认）
+      description: |
+        设置为 deleted_at。被删除的任务后续查询一律 404。
+
+        两阶段：
+          1. 不带 X-Confirm-Token → 403，data 里带 {confirmToken, expiresInSeconds, snapshot}
+          2. 带上该令牌再删 → 204
+        令牌 5 分钟过期、单次使用。
+      parameters:
+        - { $ref: '#/components/parameters/XActor' }
+      responses:
+        '204': { description: 已删除（无响应体） }
+        '403': { $ref: '#/components/responses/ConfirmRequired' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/tasks/{id}:complete:
+    post:
+      tags: [task]
+      operationId: completeTask
+      summary: 标记完成
+      description: |
+        幂等：已 DONE 直接返回。前置依赖未完成时返回 422（不可恢复）。
+        已 DONE 时不校验 version，直接返回当前状态。
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { $ref: '#/components/parameters/XActor' }
+        - { $ref: '#/components/parameters/XTraceId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VersionRequest' }
+      responses:
+        '200':
+          description: 完成后的任务
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskSuccessResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+
+  /api/v1/tasks/{id}:start:
+    post:
+      tags: [task]
+      operationId: startTask
+      summary: 开始任务（TODO → DOING）
+      description: 只有 TODO 可以开始。已 DOING 是幂等的。其他状态返回 422。
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { $ref: '#/components/parameters/XActor' }
+        - { $ref: '#/components/parameters/XTraceId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VersionRequest' }
+      responses:
+        '200':
+          description: 开始后的任务
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskSuccessResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+
+  /api/v1/tasks/{id}:reopen:
+    post:
+      tags: [task]
+      operationId: reopenTask
+      summary: 恢复为 TODO（DONE/CANCELLED → TODO）
+      description: 已 DONE 或 CANCELLED 的任务可以恢复为 TODO，之后可重新开始或完成。
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { $ref: '#/components/parameters/XActor' }
+        - { $ref: '#/components/parameters/XTraceId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VersionRequest' }
+      responses:
+        '200':
+          description: 恢复后的任务
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskSuccessResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/v1/tasks/{id}:cancel:
+    post:
+      tags: [task]
+      operationId: cancelTask
+      summary: 取消任务
+      description: |
+        TODO 和 DOING 可以取消。已 DONE 的不允许取消 —— 必须先 reopen，
+        因为"完成"是事实记录，"取消"是意图变更，两者语义不同。
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { $ref: '#/components/parameters/XActor' }
+        - { $ref: '#/components/parameters/XTraceId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VersionRequest' }
+      responses:
+        '200':
+          description: 取消后的任务
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskSuccessResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+
+  /api/v1/tasks/{id}/history:
+    get:
+      tags: [task]
+      operationId: getTaskHistory
+      summary: 任务审计历史
+      description: 按时间倒序返回该任务的全部写操作记录，含 before/after 快照。
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: 审计记录（data 为数组，按时间倒序）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuditListResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/tasks:batch:
+    post:
+      tags: [task]
+      operationId: batchUpdateTasks
+      summary: 批量更新（全成功或全回滚）
+      description: |
+        事务语义：任何一条失败整批回滚，不会出现部分成功。
+        这个接口存在的原因，就是防止 Agent 循环调单条 PATCH 造成中间态。
+      parameters:
+        - { $ref: '#/components/parameters/XActor' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BatchUpdateRequest' }
+      responses:
+        '200':
+          description: 全部成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BatchResultResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /api/v1/tasks/{id}/dependencies:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [task]
+      operationId: listDependencies
+      summary: 查询前置任务
+      responses:
+        '200':
+          description: 前置任务 id 列表（data 为字符串数组，按字典序）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IdListResponse' }
+    post:
+      tags: [task]
+      operationId: addDependency
+      summary: 添加前置依赖
+      description: 若会形成环，返回 422 DEPENDENCY_VIOLATION（不可恢复）。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dependsOnId]
+              properties:
+                dependsOnId: { type: string }
+      responses:
+        '201':
+          description: 添加后的完整前置列表
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IdListResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+
+  /api/v1/tasks/{id}/dependencies/{dependsOnId}:
+    delete:
+      tags: [task]
+      operationId: removeDependency
+      summary: 移除前置依赖
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { name: dependsOnId, in: path, required: true, schema: { type: string } }
+      responses:
+        '204': { description: 已移除（无响应体） }
+
+  /api/v1/tasks/{id}/occurrences:
+    get:
+      tags: [task]
+      operationId: listOccurrences
+      summary: 展开重复任务实例
+      description: |
+        把 RRULE 展开为 [from, to] 内的具体时间点。
+
+        ⚠️ 时区偏移里的 '+' 在查询字符串中必须编码为 %2B。
+        否则按 application/x-www-form-urlencoded 规则会被解码成空格，
+        OffsetDateTime 解析失败并返回 400 VALIDATION_ERROR。
+        例：?from=2026-11-01T00:00:00%2B08:00&to=2026-12-01T00:00:00%2B08:00
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { name: from, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: cap, in: query, schema: { type: integer, minimum: 1, maximum: 500, default: 200 } }
+      responses:
+        '200':
+          description: 展开结果
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OccurrenceSuccessResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/calendar/busy:
+    get:
+      tags: [calendar]
+      operationId: getBusyRanges
+      summary: 忙闲查询
+      description: |
+        返回 [from, to] 内已被占用且不可再安排的时间段（已合并相邻段）。
+
+        ⚠️ 同 occurrences：查询串里的 '+' 必须编码为 %2B。
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date-time } }
+      responses:
+        '200':
+          description: 忙碌区间
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BusySuccessResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+components:
+
+  parameters:
+    XActor:
+      name: X-Actor
+      in: header
+      schema: { type: string, default: agent }
+      description: 调用方标识，写入审计日志
+    XTraceId:
+      name: X-Trace-Id
+      in: header
+      schema: { type: string }
+      description: 调用方的 trace 标识，用于把一次对话的多步操作串起来
+    XIdempotencyKey:
+      name: X-Idempotency-Key
+      in: header
+      schema: { type: string }
+      description: 幂等键，同键重复请求返回首次结果。24 小时 TTL。
+    XConfirmToken:
+      name: X-Confirm-Token
+      in: header
+      schema: { type: string }
+      description: 破坏性操作的确认令牌，5 分钟过期、单次有效
+
+  responses:
+    BadRequest:
+      description: 请求参数不合法
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    NotFound:
+      description: 目标不存在
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Conflict:
+      description: 版本冲突
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Unprocessable:
+      description: 业务规则不允许（状态流转、依赖环、前置未完成）
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    ConfirmRequired:
+      description: 删除需要确认令牌；data.confirmToken 是下一步要回传的令牌
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ConfirmRequiredResponse' }
+
+  schemas:
+
+    VersionRequest:
+      type: object
+      required: [version]
+      properties:
+        version: { type: integer, format: int64 }
+
+    AuditEntry:
+      type: object
+      required: [action, actor, at]
+      properties:
+        action:
+          type: string
+          enum: [CREATE, UPDATE, COMPLETE, START, REOPEN, CANCEL, DELETE, BATCH_UPDATE]
+        actor: { type: string }
+        traceId: { type: string, nullable: true }
+        before: { type: string, nullable: true, description: 变更前任务快照（JSON 字符串） }
+        after: { type: string, nullable: true, description: 变更后任务快照 }
+        at: { type: string, format: date-time }
+
+    TaskStatus:
+      type: string
+      enum: [TODO, DOING, DONE, CANCELLED]
+
+    Priority:
+      type: string
+      enum: [LOW, NORMAL, HIGH, URGENT]
+
+    Task:
+      type: object
+      required: [id, title, status, priority, pinned, tags, version, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        title: { type: string, maxLength: 200 }
+        description: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/TaskStatus' }
+        priority: { $ref: '#/components/schemas/Priority' }
+        startAt: { type: string, format: date-time, nullable: true, description: 带偏移，如 2026-11-05T09:00:00+08:00 }
+        dueAt: { type: string, format: date-time, nullable: true }
+        estimateMin: { type: integer, minimum: 5, maximum: 480, nullable: true }
+        parentId: { type: string, nullable: true }
+        pinned: { type: boolean, description: 重排期时不可移动 }
+        rrule: { type: string, nullable: true, description: 'iCal RRULE 子集，如 FREQ=WEEKLY;BYDAY=MO' }
+        tags: { type: array, items: { type: string } }
+        version: { type: integer, format: int64, description: 乐观锁版本，写操作必须回传 }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    TaskListResponse:
+      type: object
+      required: [code, message, data]
+      properties:
+        code: { type: integer, const: 0, description: 0 表示成功 }
+        message: { type: string, const: success }
+        data: { $ref: '#/components/schemas/TaskList' }
+
+    TaskList:
+      type: object
+      required: [items, hasMore, total]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Task' } }
+        hasMore: { type: boolean, description: 结果被 limit 截断时为 true }
+        total: { type: integer, description: 未截断时的总数 }
+
+    TaskDetailResponse:
+      type: object
+      required: [code, message, data]
+      properties:
+        code: { type: integer, const: 0 }
+        message: { type: string, const: success }
+        data: { $ref: '#/components/schemas/TaskDetail' }
+
+    TaskDetail:
+      type: object
+      required: [task, dependsOn, blocks, conflicts]
+      properties:
+        task: { $ref: '#/components/schemas/Task' }
+        dependsOn: { type: array, items: { type: string }, description: 我的前置 }
+        blocks: { type: array, items: { type: string }, description: 我的后继 }
+        conflicts:
+          type: array
+          items:
+            type: object
+            properties:
+              taskId: { type: string }
+              title: { type: string }
+              priority: { $ref: '#/components/schemas/Priority' }
+              overlapStart: { type: string, format: date-time }
+              overlapEnd: { type: string, format: date-time }
+              overlapMinutes: { type: integer }
+
+    TaskCreatedResponse:
+      type: object
+      required: [code, message, data]
+      properties:
+        code: { type: integer, const: 0 }
+        message: { type: string, const: success }
+        data: { $ref: '#/components/schemas/Task' }
+
+    TaskSuccessResponse:
+      type: object
+      required: [code, message, data]
+      properties:
+        code: { type: integer, const: 0 }
+        message: { type: string, const: success }
+        data: { $ref: '#/components/schemas/Task' }
+
+    TaskPatchResponse:
+      type: object
+      required: [code, message, data]
+      properties:
+        code: { type: integer, const: 0 }
+        message: { type: string, const: success }
+        data:
+          type: object
+          required: [task, warnings]
+          properties:
+            task: { $ref: '#/components/schemas/Task' }
+            warnings:
+              type: array
+              description: 非致命提示，例如与其它任务时间重叠。不是错误。
+              items:
+                type: object
+                required: [code, message, relatedTaskId]
+                properties:
+                  code: { type: string, enum: [TIME_CONFLICT] }
+                  message: { type: string }
+                  relatedTaskId: { type: string }
+
+    AuditListResponse:
+      type: object
+      required: [code, message, data]
+      properties:
+        code: { type: integer, const: 0 }
+        message: { type: string, const: success }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/AuditEntry' }
+
+    IdListResponse:
+      type: object
+      required: [code, message, data]
+      properties:
+        code: { type: integer, const: 0 }
+        message: { type: string, const: success }
+        data: { type: array, items: { type: string } }
+
+    BatchResultResponse:
+      type: object
+      required: [code, message, data]
+      properties:
+        code: { type: integer, const: 0 }
+        message: { type: string, const: success }
+        data:
+          type: object
+          required: [applied, ids]
+          properties:
+            applied: { type: integer }
+            ids: { type: array, items: { type: string } }
+
+    BusySuccessResponse:
+      type: object
+      required: [code, message, data]
+      properties:
+        code: { type: integer, const: 0 }
+        message: { type: string, const: success }
+        data: { $ref: '#/components/schemas/BusyResponse' }
+
+    OccurrenceSuccessResponse:
+      type: object
+      required: [code, message, data]
+      properties:
+        code: { type: integer, const: 0 }
+        message: { type: string, const: success }
+        data: { $ref: '#/components/schemas/OccurrenceResponse' }
+
+    BusyResponse:
+      type: object
+      required: [windows]
+      properties:
+        windows:
+          type: array
+          items:
+            type: object
+            required: [start, end, minutes]
+            properties:
+              start: { type: string, format: date-time }
+              end: { type: string, format: date-time }
+              minutes: { type: integer }
+
+    OccurrenceResponse:
+      type: object
+      required: [taskId, from, to, occurrences, truncated]
+      properties:
+        taskId: { type: string }
+        rrule: { type: string, nullable: true }
+        from: { type: string, format: date-time }
+        to: { type: string, format: date-time }
+        occurrences: { type: array, items: { type: string, format: date-time } }
+        truncated: { type: boolean }
+
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      description: |
+        统一错误外壳。code 为数字，等于 HTTP 状态码：
+          400 VALIDATION_ERROR     请求参数不合法
+          403 CONFIRM_REQUIRED     需要确认令牌（删除的两阶段）
+          404 NOT_FOUND            目标不存在
+          409 CONFLICT             乐观锁版本冲突，可重试
+          422 ILLEGAL_TRANSITION   状态机不允许该流转，不可重试
+          422 DEPENDENCY_VIOLATION 依赖成环 / 前置未完成，不可重试
+          500 INTERNAL_ERROR       服务端未预期错误
+        data 在错误响应中缺省。
+      properties:
+        code: { type: integer, enum: [400, 403, 404, 409, 422, 500] }
+        message: { type: string }
+
+    ConfirmRequiredResponse:
+      type: object
+      required: [code, message, data]
+      description: |
+        403 的特例：失败响应里带下一步要用的确认令牌。
+        拿到 data.confirmToken 后原样再发一次 DELETE 并带 X-Confirm-Token 头即可。
+      properties:
+        code: { type: integer, const: 403 }
+        message: { type: string }
+        data:
+          type: object
+          required: [confirmToken, expiresInSeconds, snapshot]
+          properties:
+            confirmToken: { type: string, description: '形如 ct_xxxx' }
+            expiresInSeconds: { type: integer, description: 令牌有效期，固定 300 秒 }
+            snapshot: { $ref: '#/components/schemas/Task' }
+
+    TaskCreateRequest:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 4000 }
+        priority: { $ref: '#/components/schemas/Priority' }
+        startAt: { type: string, format: date-time }
+        dueAt: { type: string, format: date-time }
+        estimateMin: { type: integer, minimum: 5, maximum: 480 }
+        parentId: { type: string }
+        pinned: { type: boolean }
+        rrule: { type: string, maxLength: 200 }
+        tags: { type: array, items: { type: string } }
+
+    TaskPatchRequest:
+      type: object
+      required: [version]
+      properties:
+        version: { type: integer, format: int64 }
+        title: { type: string, maxLength: 200 }
+        description: { type: string }
+        priority: { $ref: '#/components/schemas/Priority' }
+        startAt: { type: string, format: date-time }
+        dueAt: { type: string, format: date-time }
+        estimateMin: { type: integer, minimum: 5, maximum: 480 }
+        pinned: { type: boolean }
+        rrule: { type: string, maxLength: 200 }
+        tags: { type: array, items: { type: string } }
+
+    BatchUpdateRequest:
+      type: object
+      required: [ops]
+      properties:
+        ops:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [id, version]
+            properties:
+              id: { type: string }
+              version: { type: integer, format: int64 }
+              patch:
+                type: object
+                properties:
+                  title: { type: string }
+                  description: { type: string }
+                  priority: { $ref: '#/components/schemas/Priority' }
+                  startAt: { type: string, format: date-time }
+                  dueAt: { type: string, format: date-time }
+                  estimateMin: { type: integer }
+                  pinned: { type: boolean }
+                  rrule: { type: string }
+                  tags: { type: array, items: { type: string } }

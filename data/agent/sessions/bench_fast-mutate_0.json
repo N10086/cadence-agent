@@ -1,0 +1,20 @@
+{
+ "session_id": "bench_fast-mutate_0",
+ "summary": "",
+ "recent_turns": [
+  {
+   "role": "user",
+   "content": "把买牛奶标记完成",
+   "at": 1794107446.7532794
+  },
+  {
+   "role": "assistant",
+   "content": "没找到「买牛奶」这个任务。我按关键词「牛奶」「买牛奶」搜了全部状态（待办/进行中/已完成），都没有匹配项。当前待办只有：交季度报告、短任务、每周站会、改过。是不是名字不一样，或者还没建？告诉我准确标题我再处理。\n\n（注意：其中有些动作我其实没有执行成功，请以任务列表实际状态为准。）",
+   "at": 1794107446.753281
+  }
+ ],
+ "pending_confirm": null,
+ "constraints": {},
+ "last_trace_id": "tr_1a1b923043f6da5bd1f",
+ "updated_at": 1794107446.753282
+}
