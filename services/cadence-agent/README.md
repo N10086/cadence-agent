@@ -106,13 +106,14 @@ data: {"name":"task.search","args":{"keyword":"报告"},"step":1}
 
 ---
 
-## 3. 11 个工具（SP2 暴露 9 个）
+## 3. 12 个工具（暴露 10 个）
 
 | 工具 | Core 端点 | 权限 |
 |---|---|---|
 | `task.search` | `GET /api/v1/tasks` | read |
 | `task.create` | `POST /api/v1/tasks` | write |
 | `task.update` | `PATCH /api/v1/tasks/{id}` | write |
+| `task.start` | `POST /api/v1/tasks/{id}:start` | write |
 | `task.complete` | `POST /api/v1/tasks/{id}:complete` | write |
 | `task.split` | N 次幂等创建 + 依赖 | write |
 | `task.delete` | `DELETE /api/v1/tasks/{id}` | **destructive** |
@@ -123,7 +124,7 @@ data: {"name":"task.search","args":{"keyword":"报告"},"step":1}
 | ~~`plan.apply`~~ | `POST /api/v1/tasks:batch` | SP3 |
 
 **未实现的工具不暴露给模型。** 模型看到就会去用，然后拿到"未实现"，
-白白浪费一轮和一份 schema token。契约里保留 11 个，`openai_tools()` 只发 9 个。
+白白浪费一轮和一份 schema token。契约里保留 12 个，`openai_tools()` 只发 10 个。
 
 ### 明确不存在的工具
 

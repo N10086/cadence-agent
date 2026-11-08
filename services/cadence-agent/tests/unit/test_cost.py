@@ -68,6 +68,6 @@ def test_tool_schema_stays_within_budget() -> None:
 
     registry = build_default_registry()
     estimate = registry.schema_token_estimate()
-    assert len(registry) == 11, "契约要求 11 个工具"
-    assert len(registry.exposed()) == 9, "SP2 只暴露 9 个（plan.* 是 SP3 的桩）"
+    assert len(registry) == 12, "契约要求 12 个工具"
+    assert len(registry.exposed()) == 10, "只暴露 10 个（plan.* 是 SP3 的桩）"
     assert estimate < 2600, f"schema 约 {estimate} token，超出预算"

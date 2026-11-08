@@ -72,6 +72,11 @@ class TaskCompleteArgs(BaseModel):
     version: int = Field(..., ge=0, description="乐观锁版本号，须来自本轮 task.search")
 
 
+class TaskStartArgs(BaseModel):
+    task_id: str = Field(..., description="任务 id，须来自本轮 task.search")
+    version: int = Field(..., ge=0, description="乐观锁版本号，须来自本轮 task.search")
+
+
 class TaskDeleteArgs(BaseModel):
     task_id: str = Field(..., description="任务 id，须来自本轮 task.search")
     confirm_token: str | None = Field(None, description="首次必须为空；系统返回令牌给用户确认后再回传")
@@ -302,6 +307,24 @@ async def _complete(args: TaskCompleteArgs, ctx: TurnContext) -> dict[str, Any]:
     return {"task": _slim(data or {})}
 
 
+async def _start(args: TaskStartArgs, ctx: TurnContext) -> dict[str, Any]:
+    """开始任务：映射 Core 的 `POST /tasks/{id}:start`。
+
+    422（状态不允许）和 409（version 冲突）由 CoreClient 原样翻译成
+    ILLEGAL_TRANSITION / CONFLICT，本函数不吞、不改写。
+    """
+    data = await ctx.core.request(
+        "POST",
+        f"/api/v1/tasks/{args.task_id}:start",
+        body={"version": args.version},
+        trace_id=ctx.trace_id,
+        tool_name="task.start",
+    )
+    ctx.remember(data)
+    ctx.note_action(f"开始任务「{(data or {}).get('title', args.task_id)}」")
+    return {"task": _slim(data or {})}
+
+
 async def _delete(args: TaskDeleteArgs, ctx: TurnContext) -> dict[str, Any]:
     """两阶段删除。
 
@@ -462,6 +485,18 @@ TOOLS: list[Tool] = [
         ),
         args_model=TaskUpdateArgs,
         handler=_update,
+        permission=Permission.WRITE,
+    ),
+    Tool(
+        name="task.start",
+        description=(
+            "把一个待办任务标记为「进行中」。需要 task_id 和 version。"
+            "**禁忌**：already DONE/CANCELLED 的任务不要用（Core 会返回 422）；"
+            "开始成功后不要重复调用（重复开始没有意义，也可能撞 version 冲突）。"
+            "“开始了”用这个工具，不要用 task.complete，也不要用 task.update 改 status。"
+        ),
+        args_model=TaskStartArgs,
+        handler=_start,
         permission=Permission.WRITE,
     ),
     Tool(

@@ -86,6 +86,8 @@
           "additionalProperties": false
         },
         "tags": { "type": "array", "items": { "type": "string" } }
+        ,
+        "allow_noop": { "type": "boolean" }
       },
       "additionalProperties": false
     }

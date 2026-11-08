@@ -28,7 +28,7 @@
         tags: ["work"]
       - alias: 论文
         title: 读论文
-        status: DOING
+        status: TODO
         priority: NORMAL
         due_at: null
         tags: ["学习"]
@@ -86,6 +86,7 @@
 
 - id: C2
   group: multi
+  allow_noop: true
   input: "把写周报拆成三小步。"
   setup: *cseed_setup
   expect:
@@ -119,12 +120,10 @@
       - name: task.search
         args:
           status: todo
-      - name: task.update
+      - name: task.start
         args:
           task_id: "$演示"
           version: "$version.演示"
-          patch:
-            status: doing
     final_state:
       count_delta: 0
       tasks:

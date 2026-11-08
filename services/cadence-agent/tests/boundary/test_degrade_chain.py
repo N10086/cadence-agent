@@ -114,7 +114,7 @@ async def test_l1_degrades_to_fast_client_and_is_visible(runtime) -> None:
 
 
 async def test_l1_keeps_tools_and_history_only_swaps_client(runtime) -> None:
-    """换 client 时参数不变：工具集仍是 9 个、消息历史仍是同一份。"""
+    """换 client 时参数不变：工具集仍是 10 个、消息历史仍是同一份。"""
     runtime.settings.llm_retry_times = 0
     primary = FailOnceClient(runtime.llm)
     fast = FakeLLM([say("好")])
@@ -123,7 +123,7 @@ async def test_l1_keeps_tools_and_history_only_swaps_client(runtime) -> None:
 
     assert len(fast.calls) == 1
     sent = fast.calls[0]
-    assert len(sent["tools"]) == 9, "降级不许削减工具集"
+    assert len(sent["tools"]) == 10, "降级不许削减工具集"
     assert sent["messages"][0]["role"] == "system"
     assert sent["messages"][-1]["role"] == "user"
 

@@ -103,7 +103,7 @@ python scripts/check_matrix.py   # 校验可追溯矩阵
 
 - **SP1 · cadence-core（后端）**：已完成。16 个 REST 接口，测试与冒烟脚本全绿。
 - **cadence-web（前端页面）**：已完成，由后端托管在 `/ui/`。
-- **SP2 · cadence-agent**：**已完成**。5 个端点、11 个工具（暴露 9 个）、9 类失败各有测试、
+- **SP2 · cadence-agent**：**已完成**。5 个端点、12 个工具（暴露 10 个）、9 类失败各有测试、
   124 个测试全绿、guard 覆盖率 98%。真实 DeepSeek 已跑通；
   **fast 路径的延迟/成本目标未达标**（原因和数字见 [README §7](services/cadence-agent/README.md)）。
 - **SP3 / SP4**：未开始。`brain/` 是桩，`plan.reschedule` 已注册但不对模型暴露。

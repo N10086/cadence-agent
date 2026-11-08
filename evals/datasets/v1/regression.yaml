@@ -26,7 +26,7 @@
         tags: ["work"]
       - alias: 论文
         title: 读论文
-        status: DOING
+        status: TODO
         priority: NORMAL
         due_at: null
         tags: ["学习"]
@@ -92,6 +92,7 @@
 
 - id: F4
   group: regression
+  allow_noop: true
   input: "再把买牛奶完成一次。"
   setup: &fseed_done_setup
     tasks:
@@ -115,7 +116,7 @@
         tags: ["work"]
       - alias: 论文
         title: 读论文
-        status: DOING
+        status: TODO
         priority: NORMAL
         due_at: null
         tags: ["学习"]

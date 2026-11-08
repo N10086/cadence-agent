@@ -19,6 +19,7 @@ import copy
 import json
 from collections import Counter
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -48,6 +49,11 @@ REQUIRED_EXPECT_KEYS: tuple[str, ...] = (
     "must_not_call",
 )
 
+#: 这些工具会改数据。若期望终态与 setup 完全一致，必须显式 allow_noop 才能通过校验。
+WRITE_TOOLS: frozenset[str] = frozenset(
+    {"task.create", "task.update", "task.start", "task.complete", "task.delete", "task.split"}
+)
+
 
 @dataclass
 class Expect:
@@ -64,6 +70,7 @@ class Case:
     setup: dict[str, Any]
     expect: Expect
     tags: list[str] = field(default_factory=list)
+    allow_noop: bool = False
     raw: dict[str, Any] = field(default_factory=dict)
     source: str = ""
 
@@ -180,6 +187,7 @@ def _to_case(record: dict[str, Any], *, source: str) -> Case:
             must_not_call=copy.deepcopy(expect_raw["must_not_call"]),
         ),
         tags=list(record.get("tags") or []),
+        allow_noop=bool(record.get("allow_noop", False)),
         raw=copy.deepcopy(record),
         source=source,
     )
@@ -234,6 +242,91 @@ def validate_case(data: Any) -> None:
 
     if not isinstance(data.get("tags"), list):
         raise ValueError(f"{data.get('id')}: tags 必须是列表")
+
+    _assert_noop_invariant(data)
+
+
+def _assert_noop_invariant(data: dict[str, Any]) -> None:
+    """写工具 + 终态与 setup 完全一致 = 空转，必须显式 `allow_noop: true`。
+
+    这条来自 B4 的假通过：`$论文` seed 本来 DOING，期望 update 成 DOING，
+    即使 update 被工具拒绝，终态断言仍然通过。数据集不能靠"碰巧一致"隐藏缺口。
+    """
+    expect = data["expect"]
+    write_calls = [
+        str(call.get("name"))
+        for call in expect.get("tool_calls") or []
+        if str(call.get("name")) in WRITE_TOOLS
+    ]
+    if not write_calls:
+        return
+    if bool(data.get("allow_noop", False)):
+        return
+    if _final_state_is_noop(expect.get("final_state") or {}, data["setup"].get("tasks") or []):
+        raise ValueError(
+            f"{data.get('id')}: 写工具 {write_calls} 的期望终态与 setup 完全一致；"
+            "如果这是有意的幂等/确认用例，必须显式写 allow_noop: true，"
+            "否则它就是一次不会改变任何数据的空转。"
+        )
+
+
+def _final_state_is_noop(final_state: dict[str, Any], setup_tasks: list[dict[str, Any]]) -> bool:
+    if final_state.get("unchanged"):
+        return True
+    if final_state.get("created") or final_state.get("not_exists"):
+        return False
+    if int(final_state.get("count_delta", 0) or 0) != 0:
+        return False
+
+    specs = final_state.get("tasks") or []
+    if not specs:
+        return False
+
+    by_alias = {str(task.get("alias")): task for task in setup_tasks if task.get("alias")}
+    by_title = {str(task.get("title")): task for task in setup_tasks if task.get("title")}
+    for spec in specs:
+        raw_id = str(spec.get("id") or "")
+        task = by_alias.get(raw_id.lstrip("$")) or by_title.get(raw_id.lstrip("$"))
+        if task is None:
+            return False
+        if int(spec.get("version_delta", 0) or 0) != 0:
+            return False
+        if "status" in spec and str(spec["status"]).upper() != str(task.get("status") or "TODO").upper():
+            return False
+        if "priority" in spec and str(spec["priority"]).upper() != str(task.get("priority") or "NORMAL").upper():
+            return False
+        if "rrule" in spec and spec["rrule"] != task.get("rrule"):
+            return False
+        if "title_contains" in spec and str(spec["title_contains"]) not in str(task.get("title") or ""):
+            return False
+        if "tags_contain" in spec and not set(spec["tags_contain"]) <= set(task.get("tags") or []):
+            return False
+        if "due_date" in spec and _date_part(task.get("due_at")) != str(spec["due_date"]):
+            return False
+        if "due_time" in spec and _time_part(task.get("due_at")) != str(spec["due_time"]):
+            return False
+    return True
+
+
+def _date_part(value: Any) -> str:
+    parsed = _parse_dt(value)
+    return parsed.date().isoformat() if parsed else ""
+
+
+def _time_part(value: Any) -> str:
+    parsed = _parse_dt(value)
+    return parsed.strftime("%H:%M") if parsed else ""
+
+
+def _parse_dt(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        return value
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
 
 
 # ---------------------------------------------------------------------------

@@ -92,6 +92,7 @@ def test_permission_matrix_covers_all_registered_tools() -> None:
         "schedule.busy": Permission.READ,
         "task.create": Permission.WRITE,
         "task.update": Permission.WRITE,
+        "task.start": Permission.WRITE,
         "task.complete": Permission.WRITE,
         "task.split": Permission.WRITE,
         "task.delete": Permission.DESTRUCTIVE,

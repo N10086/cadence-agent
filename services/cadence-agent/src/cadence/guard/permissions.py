@@ -24,6 +24,7 @@ TOOL_PERMISSIONS: dict[str, Permission] = {
     "schedule.busy": Permission.READ,
     "task.create": Permission.WRITE,
     "task.update": Permission.WRITE,
+    "task.start": Permission.WRITE,
     "task.complete": Permission.WRITE,
     "task.split": Permission.WRITE,
     "task.delete": Permission.DESTRUCTIVE,

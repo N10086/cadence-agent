@@ -34,7 +34,7 @@
         tags: ["work"]
       - alias: 论文
         title: 读论文
-        status: DOING
+        status: TODO
         priority: NORMAL
         due_at: null
         start_at: null
@@ -272,12 +272,10 @@
       - name: task.search
         args:
           keyword: "论文"
-      - name: task.update
+      - name: task.start
         args:
           task_id: "$论文"
           version: "$version.论文"
-          patch:
-            status: doing
     final_state:
       count_delta: 0
       tasks:
@@ -354,6 +352,7 @@
 
 - id: B8
   group: single
+  allow_noop: true
   input: "旧任务删掉吧，它没用了。"
   setup: *seed_setup
   expect:

@@ -1,7 +1,7 @@
 """工具注册表 + OpenAI function 定义生成。
 
-11 个工具，不多不少。为什么是 11（PRD 05 §2.1）：
-每个工具 ≈95 token，11 个 ≈1000 token，占单轮 2200 预算的 45%——这是上限；
+12 个工具，不多不少。为什么是 12（PRD 05 §2.1 + L4.5 task.start）：
+每个工具 ≈95 token，12 个 ≈1100 token，占单轮 2200 预算的 45%——这是上限；
 经验上 10-15 个是甜点区，超过 15 个模型开始混淆相邻工具
 （`task.update` / `task.complete` / `task.delete` 是最容易混的三兄弟）。
 """
@@ -26,7 +26,7 @@ def provider_name(tool_name: str) -> str:
 def _strip_titles(node: Any) -> Any:
     """递归删掉 pydantic 自动加的 schema 元数据 "title"。
 
-    纯噪声：每字段一个 title，11 个工具加起来能占近三分之一 schema 体积，
+    纯噪声：每字段一个 title，12 个工具加起来能占近三分之一 schema 体积，
     而模型从不读它。这是最便宜的省钱手段。
 
     但 `properties` 是一个「字段名 → schema」的映射，它下面的 key 是字段名而不是
@@ -72,7 +72,7 @@ class ToolRegistry:
     def __init__(self) -> None:
         self._tools: dict[str, Tool] = {}
         self._reverse: dict[str, str] = {}
-        #: L3：`openai_tools()` 的结果缓存。它每次都会让 pydantic 为 9 个 args model
+        #: L3：`openai_tools()` 的结果缓存。它每次都会让 pydantic 为 10 个 args model
         #: 重新生成 JSON Schema —— 那是纯 CPU（单次约 5~15ms），在每次 LLM 调用前做一遍，
         #: 50 并发时会把事件循环堵成串行（压测里 T_queue p50 直接飙到 500ms）。
         #: 工具集启动后不变，所以缓存；`register()` 会失效它。
@@ -125,7 +125,7 @@ class ToolRegistry:
     # ------------------------------------------------------------------
 
     def openai_tools(self) -> list[dict[str, Any]]:
-        """返回 9 个 exposed 工具的 function 定义（**只读**，调用方不许改）。
+        """返回 10 个 exposed 工具的 function 定义（**只读**，调用方不许改）。
 
         缓存理由见 `__init__` 里的 `_schema_cache`；`register()` 会失效缓存，
         所以测试里动态注册工具仍然拿得到新 schema。
@@ -141,7 +141,7 @@ class ToolRegistry:
 
 
 def build_default_registry() -> ToolRegistry:
-    """装配全部 11 个工具。这是唯一的注册入口。"""
+    """装配全部 12 个工具。这是唯一的注册入口。"""
     from . import calendar_tools, meta_tools, plan_tools, task_tools
 
     registry = ToolRegistry()

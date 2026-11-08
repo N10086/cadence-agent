@@ -53,6 +53,34 @@ def test_validate_case_rejects_missing_final_state() -> None:
         validate_case({"id": "bad", "group": "single", "input": "x"})
 
 
+def test_write_tool_with_unchanged_final_state_requires_allow_noop() -> None:
+    """B4 的教训：写工具 + 终态与 setup 完全一致 = 空转，必须显式 allow_noop。"""
+    case = {
+        "id": "B4-old",
+        "group": "single",
+        "input": "读论文我开始了。",
+        "setup": {"tasks": [{"alias": "论文", "title": "读论文", "status": "DOING"}]},
+        "expect": {
+            "tool_calls": [
+                {"name": "task.update", "args": {"task_id": "$论文", "patch": {"status": "doing"}}}
+            ],
+            "final_state": {"count_delta": 0, "tasks": [{"id": "$论文", "status": "DOING"}]},
+            "must_not_call": ["task.complete"],
+        },
+        "tags": ["B", "action"],
+    }
+    with pytest.raises(ValueError, match="allow_noop"):
+        validate_case(case)
+    case["allow_noop"] = True
+    validate_case(case)
+
+
+def test_f4_idempotent_case_is_explicitly_allow_noop() -> None:
+    ds = load_dataset(DATASET)
+    f4 = ds.by_id("F4")
+    assert f4 is not None and f4.allow_noop is True
+
+
 def test_four_ablation_configs_load() -> None:
     configs = load_configs(CONFIGS)
     assert [config.name for config in configs] == ["B0", "B1", "B2", "B3"]
