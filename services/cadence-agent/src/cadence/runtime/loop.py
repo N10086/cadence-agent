@@ -71,6 +71,7 @@ from ..runtime.messages import humanize, humanize_event, redact_protocol_text
 from ..runtime.session import SessionState, compress_messages, estimate_messages
 from ..tools.base import Tool, ToolResult
 from ..tools.registry import ToolRegistry
+from ..tools.routing import categories_for_intent, choose_categories, normalize
 from . import events
 
 Emit = Callable[[str, dict[str, Any]], Awaitable[None]]
@@ -253,8 +254,12 @@ class Loop:
             llm_started = time.perf_counter()
             try:
                 requested_tier = call_ctx.tier
+                # 两级工具注入：每轮重新选类别，只把该类工具的 schema 发给模型。
+                tools = await self._route_tools(
+                    messages, ctx, user_message, classify.intent.value
+                )
                 response, call_ctx = await self._invoke_with_degrade(
-                    call_ctx, messages, ctx, emit
+                    call_ctx, messages, ctx, emit, tools
                 )
                 if call_ctx.tier != requested_tier:
                     # ctx.tier 记的是**路由决定**（评测要看它）；这里把**实际用上的 tier**
@@ -344,16 +349,80 @@ class Loop:
     # 降级链：一次带 L1/L2/L3 的模型调用
     # ------------------------------------------------------------------
 
+    async def _route_tools(
+        self,
+        messages: list[dict[str, Any]],
+        ctx: TurnContext,
+        user_message: str,
+        intent: str,
+    ) -> list[dict[str, Any]]:
+        """两级工具注入的第一级：选类别，返回该类工具的 function 定义。
+
+        - 关闭开关 → 全量（对比实验）；
+        - fake 模式 → 规则（不额外调模型，测试脚本不受影响）；
+        - live → 用 fast client 做一次极短调用（只喂类别摘要 + 用户请求）。
+
+        类别摘要只出现在第一级 prompt；第二级只有被选中工具自己的 description。
+        """
+        if not self.settings.tool_category_routing:
+            return self.registry.openai_tools()
+
+        categories: list[str] = []
+        source = "rules"
+        if self.settings.resolved_llm_mode == "fake":
+            categories = categories_for_intent(intent)
+        else:
+            source = "llm"
+            try:
+                categories, response = await choose_categories(
+                    self.fast_llm,
+                    user_message=user_message,
+                    step=ctx.step_index,
+                    actions=list(ctx.actions_taken),
+                )
+                _charge(self.settings, ctx, response)
+                ctx.trace.add(
+                    "LLM",
+                    "tool.route",
+                    tokens_in=response.tokens_in,
+                    tokens_out=response.tokens_out,
+                    detail={"categories": categories, "source": source},
+                )
+            except Exception as exc:  # noqa: BLE001 - 路由失败退化为全量，不能让整轮挂掉
+                categories = []
+                source = "fallback"
+                ctx.trace.add(
+                    "GUARD",
+                    "tool.route_failed",
+                    ok=False,
+                    detail={"error": f"{type(exc).__name__}: {exc}"[:200]},
+                )
+
+        cats = normalize(categories)
+        tools = self.registry.openai_tools(cats)
+        ctx.trace.add(
+            "GUARD",
+            "tool.route",
+            detail={
+                "categories": cats,
+                "tools": [t["function"]["name"] for t in tools],
+                "count": len(tools),
+                "source": source,
+            },
+        )
+        return tools
+
     async def _invoke_with_degrade(
         self,
         call_ctx: LLMCallContext,
         messages: list[dict[str, Any]],
         ctx: TurnContext,
         emit: Emit,
+        tools: list[dict[str, Any]] | None = None,
     ) -> tuple[LLMResponse, LLMCallContext]:
         """返回 (response, 实际使用的 call_ctx)。失败到 L3 时抛 `_LLMFailed`。"""
         try:
-            response = await self._call_llm(call_ctx.client, messages, ctx, emit, call_ctx.tier)
+            response = await self._call_llm(call_ctx.client, messages, ctx, emit, call_ctx.tier, tools)
             _charge(self.settings, ctx, response)
             return response, call_ctx
         except _LLMFailed:
@@ -372,7 +441,7 @@ class Loop:
             if call_ctx.tier == "reason" and not ctx.degraded:
                 call_ctx = await self._degrade_l1(call_ctx, ctx, emit, first)
                 try:
-                    response = await self._call_llm(call_ctx.client, messages, ctx, emit, call_ctx.tier)
+                    response = await self._call_llm(call_ctx.client, messages, ctx, emit, call_ctx.tier, tools)
                     _charge(self.settings, ctx, response)
                     return response, call_ctx
                 except LLMError as second:
@@ -386,7 +455,7 @@ class Loop:
             # ---- L2：单步模式（不再规划）----
             degraded_ctx = await self._degrade_l2(ctx, emit, first)
             try:
-                response = await self._single_step(degraded_ctx.client, messages, ctx, emit)
+                response = await self._single_step(degraded_ctx.client, messages, ctx, emit, tools)
                 _charge(self.settings, ctx, response)
                 return response, degraded_ctx
             except _LLMFailed:
@@ -452,6 +521,7 @@ class Loop:
         messages: list[dict[str, Any]],
         ctx: TurnContext,
         emit: Emit,
+        tools: list[dict[str, Any]] | None = None,
     ) -> LLMResponse:
         """L2：一次工具调用 + 一次措辞，不再规划。
 
@@ -464,7 +534,7 @@ class Loop:
         无 tool_calls → 直接收尾，所以不会再规划第二轮。
         """
         async def once() -> LLMResponse:
-            return await self._stream_once(client, messages, emit)
+            return await self._stream_once(client, messages, emit, tools)
 
         # 熔断 OPEN 期间**不打 provider**（L2 硬约束）。降级也不能绕开熔断：
         # 单步模式只是换策略，不是换一个不受熔断约束的通道。
@@ -535,9 +605,10 @@ class Loop:
         ctx: TurnContext,
         emit: Emit,
         tier: str,
+        tools: list[dict[str, Any]] | None = None,
     ) -> LLMResponse:
         async def once() -> LLMResponse:
-            return await self._stream_once(client, messages, emit)
+            return await self._stream_once(client, messages, emit, tools)
 
         return await call_with_resilience(
             once,
@@ -547,7 +618,11 @@ class Loop:
         )
 
     async def _stream_once(
-        self, client: LLMClient, messages: list[dict[str, Any]], emit: Emit
+        self,
+        client: LLMClient,
+        messages: list[dict[str, Any]],
+        emit: Emit,
+        tools: list[dict[str, Any]] | None = None,
     ) -> LLMResponse:
         """一次 provider 调用：**先拿信号量（叶子），再套读超时**。
 
@@ -558,7 +633,7 @@ class Loop:
         async with self._llm_slot():
             try:
                 async with asyncio.timeout(self.settings.llm_read_timeout_s):
-                    return await self._consume_stream(client, messages, emit)
+                    return await self._consume_stream(client, messages, emit, tools)
             except TimeoutError as exc:
                 raise LLMTimeout(f"模型读超时（>{self.settings.llm_read_timeout_s:.0f}s）") from exc
 
@@ -572,9 +647,15 @@ class Loop:
             yield
 
     async def _consume_stream(
-        self, client: LLMClient, messages: list[dict[str, Any]], emit: Emit
+        self,
+        client: LLMClient,
+        messages: list[dict[str, Any]],
+        emit: Emit,
+        tools: list[dict[str, Any]] | None = None,
     ) -> LLMResponse:
-        async for ev in client.stream(messages, self.registry.openai_tools()):
+        async for ev in client.stream(
+            messages, tools if tools is not None else self.registry.openai_tools()
+        ):
             if ev.kind == "token":
                 # 默认缓冲模式：不在这里推，等这轮确认成功由调用方一次性推，
                 # 避免"流到一半失败 → 重试 → 文本重复"。

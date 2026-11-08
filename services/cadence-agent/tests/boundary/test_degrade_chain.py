@@ -123,7 +123,9 @@ async def test_l1_keeps_tools_and_history_only_swaps_client(runtime) -> None:
 
     assert len(fast.calls) == 1
     sent = fast.calls[0]
-    assert len(sent["tools"]) == 10, "降级不许削减工具集"
+    # 降级不改变工具集：L1 收到的 tools 必须和 L0（primary）完全一致。
+    # 注意分类路由后工具集每轮可能小于 10，所以不能断言 ==10。
+    assert sent["tools"] == primary.calls[0]["tools"], "降级不许削减或改变工具集"
     assert sent["messages"][0]["role"] == "system"
     assert sent["messages"][-1]["role"] == "user"
 

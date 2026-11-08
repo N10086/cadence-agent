@@ -76,7 +76,8 @@ class ToolRegistry:
         #: 重新生成 JSON Schema —— 那是纯 CPU（单次约 5~15ms），在每次 LLM 调用前做一遍，
         #: 50 并发时会把事件循环堵成串行（压测里 T_queue p50 直接飙到 500ms）。
         #: 工具集启动后不变，所以缓存；`register()` 会失效它。
-        self._schema_cache: list[dict[str, Any]] | None = None
+        #: key = 类别元组（空元组 = 全量）；分类路由后每类一份缓存。
+        self._schema_cache: dict[tuple[str, ...], list[dict[str, Any]]] = {}
 
     # ------------------------------------------------------------------
 
@@ -85,7 +86,7 @@ class ToolRegistry:
             raise ValueError(f"工具重复注册：{tool.name}")
         self._tools[tool.name] = tool
         self._reverse[provider_name(tool.name)] = tool.name
-        self._schema_cache = None
+        self._schema_cache = {}
         return tool
 
     def register_all(self, tools: Iterable[Tool]) -> None:
@@ -124,15 +125,29 @@ class ToolRegistry:
 
     # ------------------------------------------------------------------
 
-    def openai_tools(self) -> list[dict[str, Any]]:
-        """返回 10 个 exposed 工具的 function 定义（**只读**，调用方不许改）。
+    def tools_for(self, categories: Iterable[str] | None) -> list[Tool]:
+        """按权限类别筛工具（None = 全量）。
 
-        缓存理由见 `__init__` 里的 `_schema_cache`；`register()` 会失效缓存，
-        所以测试里动态注册工具仍然拿得到新 schema。
+        类别与 `guard.permissions.Permission` 一一对应；`control` 通常由调用方补上，
+        否则模型既不能提问也不能结束本轮。
         """
-        if self._schema_cache is None:
-            self._schema_cache = [tool_schema(t) for t in self.exposed()]
-        return self._schema_cache
+        if categories is None:
+            return self.exposed()
+        wanted = {str(c).lower() for c in categories}
+        return [t for t in self.exposed() if t.permission.value in wanted]
+
+    def openai_tools(self, categories: Iterable[str] | None = None) -> list[dict[str, Any]]:
+        """返回 exposed 工具的 function 定义（**只读**，调用方不许改）。
+
+        `categories=None` → 10 个全量；给定类别 → 只返回该类。
+        缓存按类别组合分开存：分类路由每轮会取不同子集，不能互相覆盖。
+        """
+        key = () if categories is None else tuple(sorted({str(c).lower() for c in categories}))
+        cached = self._schema_cache.get(key)
+        if cached is None:
+            cached = [tool_schema(t) for t in self.tools_for(categories)]
+            self._schema_cache[key] = cached
+        return cached
 
     def schema_token_estimate(self) -> int:
         """粗估 schema 占用的 token（用于核对 2200 预算是否被撑爆）。"""

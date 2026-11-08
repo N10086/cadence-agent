@@ -137,6 +137,30 @@ python -m evals.cli run --all --llm live --core live --allow-reset `
 
 ---
 
+## 工具上下文（两级注入）
+
+每轮 loop 开始先做一次**类别路由**，只把被选中类别的工具 schema 发给模型：
+
+```
+第一级（只喂 4 段类别摘要，约 220 token）
+  read       只读：搜索/查看任务、查忙闲
+  write      单条写入：新建/改字段/开始/完成/拆分
+  destructive 删除（不可撤销，需确认）
+  control    提问澄清 / 结束本轮（永远附加）
+        ↓ 模型输出 {"categories":["read","write"]}
+第二级（只发这一类工具的 schema，类别摘要不再出现）
+        ↓
+     主模型决策 → 工具调用
+```
+
+- 多步任务每轮重新选：第 1 步 read、第 2 步 write 是常态；
+- 查询类一轮只发 4 个工具（read+control），实测首步 `tokens_in` 从 3444 降到 1413；
+- 路由调用本身约 220 token、7 token 输出（用 `deepseek-chat`），比省下的 schema 便宜；
+- 关掉：`.env` 设 `TOOL_CATEGORY_ROUTING=false`（回到 10 个工具全量注入，用于对比）。
+- 代码：`tools/routing.py`（摘要+规则+解析）、`registry.openai_tools(categories)`、`loop._route_tools()`。
+
+---
+
 ## 已知限制
 
 - **单 worker**：会话锁、SSE 缓冲都在进程内，多副本需要会话粘滞或外部存储，本版不做。

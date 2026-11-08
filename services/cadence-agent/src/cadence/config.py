@@ -105,6 +105,12 @@ class Settings(BaseSettings):
     tool_result_max_items: int = 20
     tool_result_max_chars: int = 1500
 
+    # ---------- 工具类别路由（两级注入）----------
+    # True：每轮先用类别摘要让模型选 read/write/destructive/control，
+    #       再把该类工具注入上下文（类别摘要不进第二级）。
+    # False：回到"10 个工具全量注入"（对比实验用）。
+    tool_category_routing: bool = True
+
     # ---------- 流式 ----------
     # False = 一个 LLM 回合确认成功后再一次性推 token（重试不会重复文本，默认）
     # True  = 边生成边推（体验好，但重试时可能重复一段文本）
