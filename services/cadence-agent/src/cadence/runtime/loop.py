@@ -71,7 +71,7 @@ from ..runtime.messages import humanize, humanize_event, redact_protocol_text
 from ..runtime.session import SessionState, compress_messages, estimate_messages
 from ..tools.base import Tool, ToolResult
 from ..tools.registry import ToolRegistry
-from ..tools.routing import categories_for_intent, choose_categories, normalize
+from ..tools.routing import categories_for_intent, choose_categories, merge_categories, normalize
 from . import events
 
 Emit = Callable[[str, dict[str, Any]], Awaitable[None]]
@@ -398,7 +398,7 @@ class Loop:
                     detail={"error": f"{type(exc).__name__}: {exc}"[:200]},
                 )
 
-        cats = normalize(categories)
+        cats = normalize(merge_categories(categories, intent))
         tools = self.registry.openai_tools(cats)
         ctx.trace.add(
             "GUARD",

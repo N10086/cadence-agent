@@ -102,38 +102,36 @@ python -m evals.cli run --all --llm live --core live --allow-reset `
 
 ---
 
-## 评测结果（2026-11-08 · live + live，benchmark 库，deepseek-flash）
+## 评测结果（2026-11-08 · live + live，benchmark 库，V1）
 
-- 汇总报告：[`evals/reports/2026-11-08-live-flash.md`](evals/reports/2026-11-08-live-flash.md)
-- **逐条逐轮详细报告**：[`evals/reports/2026-11-08-详细-deepseek-flash.md`](evals/reports/2026-11-08-详细-deepseek-flash.md)
-  （每条用例含：用户行为、逐轮 reasoning/决策/行为、白名单、实际 vs 标准答案、耗时/token/微元、最终回答）
-- 对比（旧的非 reasoning 别名 `deepseek-chat`）：[`2026-11-08-live-chat.md`](evals/reports/2026-11-08-live-chat.md)
+- **V1 完整报告（结果 + 代码改动说明）**：[`evals/reports/V1.md`](evals/reports/V1.md)
+- 逐条逐轮详细报告：[`evals/reports/2026-11-08-详细-deepseek-flash.md`](evals/reports/2026-11-08-详细-deepseek-flash.md)
+- 历史对比：[`2026-11-08-live-flash.md`](evals/reports/2026-11-08-live-flash.md)（单模型 / 全量工具）、
+  [`2026-11-08-live-chat.md`](evals/reports/2026-11-08-live-chat.md)（非 reasoning 别名）
 
 | 指标 | 实测 | 目标 | 判定 |
 |---|---:|---:|---|
-| `task_success` | **65.7%**（23/35） | ≥ 80% | ❌ |
-| `tool_name_accuracy` | 90.2% | ≥ 92% | ❌ |
-| `tool_seq_f1` | 88.5% | ≥ 85% | ✅ |
-| `arg_field_accuracy` | 70.3% | ≥ 88% | ❌ |
-| `date_parse_accuracy` | **100%** | 100% | ✅ |
+| `task_success` | **68.6%**（24/35） | ≥ 80% | ❌ |
+| `tool_name_accuracy` | 86.3% | ≥ 92% | ❌ |
+| `tool_seq_f1` | 86.3% | ≥ 85% | ✅ |
+| `arg_field_accuracy` | 67.2% | ≥ 88% | ❌ |
+| `date_parse_accuracy` | 75.0% | 100% | ❌ |
 | `hallucinated_id_rate` | **0.0%** | 0% | ✅ |
 | `unsafe_action_blocked_rate` | **100%** | 100% | ✅ |
 | `injection_resist_rate` | **100%** | 100% | ✅ |
 | `clarification_rate` | 100% | ≥ 70% | ✅ |
-| `latency_p50` / `p95` | 3.3s / 8.6s | 1.8s / 4.5s | ❌ |
-| `cost_per_turn` | ¥0.0200 | ≤ ¥0.01 | ❌ |
+| `latency_p50` / `p95` | 5.9s / 17.6s | 1.8s / 4.5s | ❌ |
+| `cost_per_turn` | ¥0.0204 | ≤ ¥0.01 | ❌ |
 
 **怎么读这张表（如实说明）：**
 
-- 模型是 **`deepseek-flash`**（provider 支持的 flash 模型；`deepseek-v4.1-flash` 会返回
-  400 "supported API model names are deepseek-flash, deepseek-v4-pro"）。
-  它**会返回 `reasoning_content`**，详细报告里的「思考」就是原文。
-- 之前的 `deepseek-chat` 是同一个底层模型的非 reasoning 别名（响应 model 也是
-  `deepseek-flash`，但不返回 reasoning），所以旧报告没有思考内容；两次跑分对比见上面链接。
-- 延迟变高是 reasoning 的代价（p95 5.4s → 8.6s），`cost_per_turn` 也从 ¥0.017 涨到 ¥0.020；
-  换来的是 `date_parse_accuracy` 从 75% 到 100%。
-- 失败项里仍有**搜索词更具体**造成的严格比对失败（`论文`→`读论文` 等），
-  以及 C5/E4 的「模型选择反问」；明细都在详细报告里带字段级 diff。
+- 模型：推理层 `deepseek-flash`（返回 reasoning），快层 `deepseek-chat`
+  （provider 的 `deepseek-v4.1-flash` 不存在，会返回 400）。
+- 工具注入：两级类别路由（read/write/destructive/control），每轮重新选。
+- 与前两版相比：通过率 65.7% → 68.6%，但**延迟明显上升**（p95 8.6s → 17.6s），
+  因为每轮多了一次类别路由调用；取舍见 V1 报告第六节。
+- 失败项仍以**搜索词更具体**（`论文`→`读论文`）的严格比对为主，另有 C2 自拟子任务、
+  C5/E4 选择反问；字段级 diff 在详细报告里。
 
 ---
 

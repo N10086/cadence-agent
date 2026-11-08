@@ -7,6 +7,7 @@ from cadence.tools.routing import (
     ALL_CATEGORIES,
     CATEGORY_SUMMARIES,
     categories_for_intent,
+    merge_categories,
     normalize,
     parse_categories,
     tools_for_categories,
@@ -44,6 +45,19 @@ def test_normalize_always_keeps_control() -> None:
     assert normalize([]) == ["control"]
     assert normalize(["read"]) == ["read", "control"]
     assert normalize(["read", "read", "control"]) == ["read", "control"]
+
+
+def test_merge_falls_back_to_all_when_only_control() -> None:
+    # 实测病态：把"新建一个任务"判成 control，模型连 create 都拿不到 → 必须退回全量
+    assert merge_categories(["control"], "mutate") == list(ALL_CATEGORIES)
+    assert merge_categories([], "query") == list(ALL_CATEGORIES)
+
+
+def test_merge_unions_with_intent_rules() -> None:
+    # 模型只给 read，但意图是 mutate → 补上 write
+    assert merge_categories(["read"], "mutate") == ["read", "write"]
+    # 模型给 write，意图是 query → 保留 write（模型可能看到了额外信号）
+    assert merge_categories(["write"], "query") == ["write", "read"]
 
 
 def test_registry_filters_tools_by_category() -> None:

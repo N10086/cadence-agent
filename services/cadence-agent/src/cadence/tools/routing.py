@@ -109,6 +109,26 @@ def normalize(categories: list[str] | None) -> list[str]:
     return out
 
 
+def merge_categories(parsed: list[str], intent: str) -> list[str]:
+    """合并「模型选出的类别」与「意图规则」，并处理两种病态输出。
+
+    两条兜底，都是实测踩出来的：
+    1. 只选出 `control`（例如把"新建一个任务"误判成"需要反问"）：这时模型
+       连 task.search / task.create 都拿不到，只能空转。直接退回全量。
+    2. 模型漏选（例如查询只给了 control）：与 intent 规则取并集，保证
+       这一类任务至少拿到它必需的工具。
+    """
+    parsed = [c for c in (parsed or []) if c in ALL_CATEGORIES]
+    if not parsed or parsed == ["control"]:
+        return list(ALL_CATEGORIES)
+
+    merged = list(parsed)
+    for name in categories_for_intent(intent):
+        if name not in merged:
+            merged.append(name)
+    return merged
+
+
 async def choose_categories(
     client: LLMClient,
     *,
