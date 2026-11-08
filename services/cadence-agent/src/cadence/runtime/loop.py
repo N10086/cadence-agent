@@ -51,6 +51,7 @@ import asyncio
 import json
 import time
 from collections.abc import Awaitable, Callable
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -143,6 +144,7 @@ class Loop:
         llm: LLMClient,
         fast_llm: LLMClient | None = None,
         breaker: Breaker | None = None,
+        llm_semaphore: asyncio.Semaphore | None = None,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         self.settings = settings
@@ -152,6 +154,9 @@ class Loop:
         # 但装配层可以传一个真·快模型进来，L1 降级会优先用它。
         self.fast_llm = fast_llm or llm
         self.breaker = breaker
+        # L3-2：全局 LLM 信号量。**只在 provider 调用点（叶子）持有**，
+        # 不在会话锁之外任何地方取，也不在持有它的时候去拿别的锁 —— 资源图单向。
+        self.llm_semaphore = llm_semaphore
         # 时间基准必须注入（PRD 02 §3.3）：不注入，"今天/下周三"在测试里就没法固定
         self.clock = clock or (lambda: datetime.now().astimezone())
 
@@ -445,7 +450,7 @@ class Loop:
         无 tool_calls → 直接收尾，所以不会再规划第二轮。
         """
         async def once() -> LLMResponse:
-            return await self._consume_stream(client, messages, emit)
+            return await self._stream_once(client, messages, emit)
 
         # 熔断 OPEN 期间**不打 provider**（L2 硬约束）。降级也不能绕开熔断：
         # 单步模式只是换策略，不是换一个不受熔断约束的通道。
@@ -518,20 +523,39 @@ class Loop:
         tier: str,
     ) -> LLMResponse:
         async def once() -> LLMResponse:
-            return await self._consume_stream(client, messages, emit)
+            return await self._stream_once(client, messages, emit)
 
-        # 读超时在循环这一层再兜一次：即使注入的 client 自己没配超时，
-        # 一轮也不会被一个卡死的流拖到整轮 60s（L2-3 的矩阵）。
-        try:
-            async with asyncio.timeout(self.settings.llm_read_timeout_s):
-                return await call_with_resilience(
-                    once,
-                    breaker=self.breaker,
-                    times=self.settings.llm_retry_times,
-                    base_delay=self.settings.llm_retry_backoff_s,
-                )
-        except TimeoutError as exc:
-            raise LLMTimeout(f"模型读超时（>{self.settings.llm_read_timeout_s:.0f}s）") from exc
+        return await call_with_resilience(
+            once,
+            breaker=self.breaker,
+            times=self.settings.llm_retry_times,
+            base_delay=self.settings.llm_retry_backoff_s,
+        )
+
+    async def _stream_once(
+        self, client: LLMClient, messages: list[dict[str, Any]], emit: Emit
+    ) -> LLMResponse:
+        """一次 provider 调用：**先拿信号量（叶子），再套读超时**。
+
+        顺序不能反：先超时后排队的话，"等信号量"的时间会被算进 read 超时，
+        50 并发下会把本来正常的调用误判成超时。
+        读超时放在这一次调用内（不是整个重试循环外），这样超时也能按 L2 的策略重试 1 次。
+        """
+        async with self._llm_slot():
+            try:
+                async with asyncio.timeout(self.settings.llm_read_timeout_s):
+                    return await self._consume_stream(client, messages, emit)
+            except TimeoutError as exc:
+                raise LLMTimeout(f"模型读超时（>{self.settings.llm_read_timeout_s:.0f}s）") from exc
+
+    @asynccontextmanager
+    async def _llm_slot(self):
+        """LLM 信号量的唯一获取点。没有注入信号量时退化为"不限并发"（单测用）。"""
+        if self.llm_semaphore is None:
+            yield
+            return
+        async with self.llm_semaphore:
+            yield
 
     async def _consume_stream(
         self, client: LLMClient, messages: list[dict[str, Any]], emit: Emit

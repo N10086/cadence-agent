@@ -41,6 +41,11 @@ class ErrorCode(str, Enum):
     #: 单轮总超时（60s）。它不等于"模型读超时"：读超时是上游慢，这个是整轮（含规划+工具）
     #: 太久，必须收尾并把已完成的动作交代清楚。
     TURN_TIMEOUT = "TURN_TIMEOUT"
+    # ---- L3 补的 2 个 ----
+    #: 入口准入队列已满（64）。**不排队**：直接 503，让客户端退避，而不是把延迟堆到无限。
+    OVERLOADED = "OVERLOADED"
+    #: 同一会话的上一轮还没结束，等锁超过 20s。409 而不是 503：这是"这个会话忙"，不是"整机忙"。
+    SESSION_BUSY = "SESSION_BUSY"
 
 
 #: 不可恢复 —— 出现即中止，不得重试
@@ -73,6 +78,8 @@ DEFAULT_HINT: dict[ErrorCode, str] = {
     ErrorCode.LOOP_DETECTED: "我似乎陷入了重复操作，先停下来汇报。",
     ErrorCode.NOT_IMPLEMENTED: "这个能力还没实现。",
     ErrorCode.TURN_TIMEOUT: "这一轮超时了，我先汇报已经完成的部分。",
+    ErrorCode.OVERLOADED: "服务繁忙，排队已满，请稍后再试。",
+    ErrorCode.SESSION_BUSY: "这个会话上一条消息还在处理，等它完成再发。",
 }
 
 

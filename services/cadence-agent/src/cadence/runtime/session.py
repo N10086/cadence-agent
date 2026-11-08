@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from ..llm.cost import estimate_tokens
+from .errors import ErrorCode, ToolError
 
 
 @dataclass
@@ -105,6 +106,31 @@ class SessionStore:
         if session_id not in self._locks:
             self._locks[session_id] = asyncio.Lock()
         return self._locks[session_id]
+
+    async def acquire(self, session_id: str, *, timeout_s: float) -> asyncio.Lock:
+        """拿会话锁，最多等 `timeout_s`；超时抛 `ToolError(SESSION_BUSY)`（HTTP 409）。
+
+        为什么要有上限：D2 的默认是"同会话第二个请求排队"，但没有上限的排队等于把
+        用户挂死。20s 是"上一条真的卡住了"的判定线，宁可让第二条带 409 去重试。
+
+        为什么超时是 409 而不是 503：503 表示整机繁忙（准入队列满），
+        409 表示**这个会话**忙 —— 换一个会话完全不受影响，客户端不该全局退避。
+        """
+        lock = self.lock(session_id)
+        try:
+            async with asyncio.timeout(timeout_s):
+                await lock.acquire()
+        except TimeoutError as exc:
+            raise ToolError(
+                ErrorCode.SESSION_BUSY,
+                f"会话 {session_id} 上一条消息还在处理（等锁超过 {timeout_s:.0f}s），请稍后再发",
+                suggestions=[{"hint": "等这条处理完再发，或换一个会话", "reason": "会话级串行化"}],
+            ) from exc
+        return lock
+
+    def locked_count(self) -> int:
+        """当前被持有的会话锁数量。压测用它断言"锁泄漏=0"。"""
+        return sum(1 for lock in self._locks.values() if lock.locked())
 
     # ---- 读写 -------------------------------------------------------------
 

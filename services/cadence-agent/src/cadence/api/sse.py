@@ -45,13 +45,25 @@ class StreamEvent:
 
 
 class StreamBuffer:
+    """单写者队列：append 只由本 turn 的协程调用，tail 只由 SSE 连接调用。
+
+    **为什么不用 `asyncio.Condition`**（L3 铁律）：
+
+    `emit()` 是在**持有会话锁**的情况下调的（整个 turn 都在锁内）。如果 append 需要
+    再取一把 Condition 的锁，资源图就多出一条 `会话锁 → 流缓冲锁` 的边 ——
+    而 L3 只允许 `会话锁 → LLM 信号量` 这一条单向边。
+
+    去掉锁之后为什么仍然正确：单线程事件循环里，`append` 对 deque + id 的更新之间
+    没有 await（原子），`tail` 在 `clear()` 与 `wait()` 之间也没有 await（不会丢失唤醒）。
+    """
+
     def __init__(self, stream_id: str, *, maxlen: int = 512) -> None:
         self.stream_id = stream_id
         self._events: deque[StreamEvent] = deque(maxlen=maxlen)
         self._next_id = 1
         self.closed = False
         self.created_at = time.time()
-        self.cond = asyncio.Condition()
+        self._wake = asyncio.Event()
 
     # ------------------------------------------------------------------
 
@@ -64,42 +76,44 @@ class StreamBuffer:
         return self._next_id - 1
 
     async def append(self, event: str, data: dict[str, Any]) -> StreamEvent:
-        async with self.cond:
-            ev = StreamEvent(id=self._next_id, event=event, data=data)
-            self._next_id += 1
-            self._events.append(ev)
-            self.cond.notify_all()
-            return ev
+        ev = StreamEvent(id=self._next_id, event=event, data=data)
+        self._next_id += 1
+        self._events.append(ev)
+        self._wake.set()
+        return ev
 
     async def close(self) -> None:
-        async with self.cond:
-            self.closed = True
-            self.cond.notify_all()
+        self.closed = True
+        self._wake.set()
 
     async def tail(self, after_id: int = 0, *, heartbeat_s: float = 15.0) -> AsyncIterator[StreamEvent | None]:
         """从 after_id 之后开始推。返回 None 表示该发心跳了。"""
         cursor = after_id
 
         while True:
-            async with self.cond:
-                if not self._pending(cursor) and not self.closed:
-                    try:
-                        await asyncio.wait_for(self.cond.wait(), timeout=heartbeat_s)
-                    except (TimeoutError, asyncio.TimeoutError):
-                        pass
-
-                batch = self._pending(cursor)
-                closed = self.closed
-
+            batch = self._pending(cursor)
             if batch:
                 cursor = batch[-1].id
                 for ev in batch:
                     yield ev
                 continue
 
-            if closed:
+            if self.closed:
                 return
-            yield None  # 心跳
+
+            # clear 与 wait 之间没有 await：append 不可能在这两步之间插进来，
+            # 所以"先检查-再等待"不会丢事件。
+            self._wake.clear()
+            if self._pending(cursor):
+                continue
+
+            try:
+                await asyncio.wait_for(self._wake.wait(), timeout=heartbeat_s)
+            except (TimeoutError, asyncio.TimeoutError):
+                pass
+
+            if not self._pending(cursor) and not self.closed:
+                yield None  # 心跳
 
     def _pending(self, cursor: int) -> list[StreamEvent]:
         return [ev for ev in self._events if ev.id > cursor]

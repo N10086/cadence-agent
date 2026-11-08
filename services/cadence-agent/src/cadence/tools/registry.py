@@ -72,6 +72,11 @@ class ToolRegistry:
     def __init__(self) -> None:
         self._tools: dict[str, Tool] = {}
         self._reverse: dict[str, str] = {}
+        #: L3：`openai_tools()` 的结果缓存。它每次都会让 pydantic 为 9 个 args model
+        #: 重新生成 JSON Schema —— 那是纯 CPU（单次约 5~15ms），在每次 LLM 调用前做一遍，
+        #: 50 并发时会把事件循环堵成串行（压测里 T_queue p50 直接飙到 500ms）。
+        #: 工具集启动后不变，所以缓存；`register()` 会失效它。
+        self._schema_cache: list[dict[str, Any]] | None = None
 
     # ------------------------------------------------------------------
 
@@ -80,6 +85,7 @@ class ToolRegistry:
             raise ValueError(f"工具重复注册：{tool.name}")
         self._tools[tool.name] = tool
         self._reverse[provider_name(tool.name)] = tool.name
+        self._schema_cache = None
         return tool
 
     def register_all(self, tools: Iterable[Tool]) -> None:
@@ -119,7 +125,14 @@ class ToolRegistry:
     # ------------------------------------------------------------------
 
     def openai_tools(self) -> list[dict[str, Any]]:
-        return [tool_schema(t) for t in self.exposed()]
+        """返回 9 个 exposed 工具的 function 定义（**只读**，调用方不许改）。
+
+        缓存理由见 `__init__` 里的 `_schema_cache`；`register()` 会失效缓存，
+        所以测试里动态注册工具仍然拿得到新 schema。
+        """
+        if self._schema_cache is None:
+            self._schema_cache = [tool_schema(t) for t in self.exposed()]
+        return self._schema_cache
 
     def schema_token_estimate(self) -> int:
         """粗估 schema 占用的 token（用于核对 2200 预算是否被撑爆）。"""

@@ -3,22 +3,38 @@
 ⚠️ 这里**不推流**。流在 `GET /stream/{id}`。
 原因是 PRD 02 §7.6 B：循环不能绑在 HTTP 连接上，
 否则连接一断循环被 cancel，写操作会停在半修改状态。
+
+**L3 并发入口（三层，从外到内）**
+
+    准入队列（64，满 → 503 OVERLOADED，不排队）
+        │
+        ▼
+    会话锁（每 session 一把，等 20s → 409 SESSION_BUSY）
+        │
+        ▼
+    LLM 信号量（16，叶子；只在 provider 调用点持有）
+
+排队时间从 `queue.enter` 到 `queue.started` 之间计量，供 L4 的 `T_queue` 用。
 """
 
 from __future__ import annotations
 
 import asyncio
 import time
+from dataclasses import dataclass
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from ..deps import Runtime, get_runtime
+from ..llm.router import route
+from ..promptlib import system_prompt
 from ..runtime.budget import Budget
 from ..runtime.context import TurnContext
 from ..runtime.errors import ErrorCode, ToolError
 from ..runtime.loop import TurnOutcome
 from ..runtime.messages import humanize, humanize_event, redact_protocol_text
+from ..runtime.queue import Overloaded
 from ..runtime.trace import KIND_GUARD, TraceRecorder
 from . import sse
 from .schemas import ChatRequest, ok
@@ -26,14 +42,53 @@ from .schemas import ChatRequest, ok
 router = APIRouter()
 
 
+@dataclass
+class TurnHandle:
+    """一次已受理的 turn。压测脚本直接用它，不走 HTTP。"""
+
+    stream_id: str
+    trace_id: str
+    task: asyncio.Task
+
+
+async def start_turn(rt: Runtime, session_id: str, message: str) -> TurnHandle:
+    """受理一个 turn：先过准入队列，再建流 + 起任务 + 挂看门狗。
+
+    准入失败抛 `ToolError(OVERLOADED)`，由 FastAPI 的异常处理器落成 503；
+    **绝不**在这里等队列空位 —— 排队到死比 503 更糟。
+    """
+    trace_id = rt.new_trace_id()
+    try:
+        rt.queue.enter(trace_id)
+    except Overloaded as exc:
+        raise ToolError(
+            ErrorCode.OVERLOADED,
+            str(exc),
+            suggestions=[{"hint": "几秒后重试", "reason": "入口队列已满，系统主动拒绝而不是排队"}],
+            details={"capacity": rt.queue.capacity},
+        ) from exc
+
+    buf = rt.streams.create()
+    try:
+        task = asyncio.create_task(
+            _run_turn(rt, session_id, message, trace_id, buf),
+            name=f"turn:{trace_id}",
+        )
+    except BaseException:  # 极端情况（任务创建失败）也要把名额还回去
+        rt.queue.leave(trace_id)
+        await buf.close()
+        raise
+
+    rt.track(task)
+    watcher = rt.watch(task, trace_id)
+    task.add_done_callback(lambda _t: watcher.cancel())
+    return TurnHandle(stream_id=buf.stream_id, trace_id=trace_id, task=task)
+
+
 @router.post("/chat", status_code=202)
 async def chat(req: ChatRequest) -> JSONResponse:
     rt = get_runtime()
-    trace_id = rt.new_trace_id()
-    buf = rt.streams.create()
-
-    task = asyncio.create_task(_run_turn(rt, req.session_id, req.message, trace_id, buf))
-    rt.track(task)
+    handle = await start_turn(rt, req.session_id, req.message)
 
     # 202 里的 degraded 只能是"启动时已知的降级"（例如没配推理模型）。
     # 真正的降级以 done 事件为准 —— 这个时序语义在 docs/接口文档.md 已补充说明。
@@ -43,8 +98,8 @@ async def chat(req: ChatRequest) -> JSONResponse:
         status_code=202,
         content=ok(
             {
-                "streamId": buf.stream_id,
-                "traceId": trace_id,
+                "streamId": handle.stream_id,
+                "traceId": handle.trace_id,
                 "degraded": static_degraded,
             }
         ),
@@ -68,6 +123,21 @@ async def _run_turn(
     trace_id: str,
     buf: sse.StreamBuffer,
 ) -> None:
+    """准入名额的唯一归还点：无论正常、超时、取消、异常，都必须 leave。"""
+    rt.queue.started(trace_id)
+    try:
+        await _run_turn_serialized(rt, session_id, message, trace_id, buf)
+    finally:
+        rt.queue.leave(trace_id)
+
+
+async def _run_turn_serialized(
+    rt: Runtime,
+    session_id: str,
+    message: str,
+    trace_id: str,
+    buf: sse.StreamBuffer,
+) -> None:
     base_emit = make_emitter(buf)
     # 记下本轮出现过的 error 事件：模型有时会把 501/503 消化成一句自己的话，
     # 但用户仍然该在 done 里拿到"下一步怎么办"。这是"降级不静默"的最后一环。
@@ -82,10 +152,25 @@ async def _run_turn(
     outcome = None
     ended_by = "finish"
 
-    # 会话级串行化：同一个 session 的第二条消息排队，不会互相覆盖会话状态
-    async with rt.sessions.lock(session_id):
+    # L3-3：会话级串行化，但**有上限**。无上限的排队等于把用户挂死；
+    # 等满 20s 就 409 SESSION_BUSY，让客户端换会话或重试。
+    try:
+        lock = await rt.sessions.acquire(session_id, timeout_s=rt.settings.session_lock_timeout_s)
+    except ToolError as busy:
+        await _finish_busy(rt, session_id, trace_id, buf, busy, base_emit)
+        return
+
+    try:
         session = rt.sessions.get(session_id)
-        trace = TraceRecorder(trace_id, rt.settings.resolved_trace_dir, session_id=session_id)
+        # prompt_version 在建立 trace 时就要知道，否则收尾得把整个文件读出来重写 META 行。
+        # 路由是纯函数（同一输入永远同一结果），这里先算一次，Loop 里还会用同样的结果。
+        tier = route(message).tier.value
+        trace = TraceRecorder(
+            trace_id,
+            rt.settings.resolved_trace_dir,
+            session_id=session_id,
+            prompt_version=system_prompt(tier)[1],
+        )
         ctx = TurnContext(
             settings=rt.settings,
             core=rt.core,
@@ -103,6 +188,9 @@ async def _run_turn(
             # L2-3：单轮总超时（默认 60s）。它比 LLM read（15s）大，所以正常情况下
             # 永远轮不到它；一旦轮到，说明"规划 + 多步工具"整体失控 —— 这时必须收尾，
             # 而不是让用户对着一个永远转圈的页面。
+            #
+            # L3-4：watchdog 用的是同一个 turn_timeout_s，但**只打栈不取消**，
+            # 取消仍然只在这里发生 —— 不能有两套取消器。
             async with asyncio.timeout(rt.settings.turn_timeout_s):
                 outcome = await rt.loop.run_turn(
                     ctx,
@@ -178,6 +266,44 @@ async def _run_turn(
                 },
             )
             await buf.close()
+    finally:
+        # 唯一释放点：取消/超时/异常路径都必须走到这里，否则压测会看到 lock_leak>0
+        lock.release()
+
+
+async def _finish_busy(
+    rt: Runtime,
+    session_id: str,
+    trace_id: str,
+    buf: sse.StreamBuffer,
+    error: ToolError,
+    emit,
+) -> None:
+    """等会话锁超时：写 trace + 推 error + 用 done 收尾（endedBy=busy）。"""
+    trace = TraceRecorder(trace_id, rt.settings.resolved_trace_dir, session_id=session_id)
+    trace.add(
+        KIND_GUARD, "runtime.session_busy", ok=False,
+        detail={"session": session_id, "timeout_s": rt.settings.session_lock_timeout_s},
+    )
+    await emit(sse.EVENT_ERROR, humanize_event(error))
+    await emit(
+        sse.EVENT_DONE,
+        {
+            "traceId": trace_id,
+            "costYuan": 0.0,
+            "degraded": False,
+            "degradeReason": "",
+            "steps": 0,
+            "endedBy": "busy",
+            "text": humanize(error)[0],
+            "actionsTaken": [],
+            "suggestions": humanize(error)[1],
+            "promptVersion": trace.prompt_version,
+            "errorCode": error.code.value,
+        },
+    )
+    trace.close(cost_yuan=0.0, total_ms=0, degraded=False)
+    await buf.close()
 
 
 def _timeout_outcome(

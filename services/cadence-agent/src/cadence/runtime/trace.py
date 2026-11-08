@@ -44,7 +44,15 @@ class TraceStep:
 
 
 class TraceRecorder:
-    """一次对话一个实例。每次 add 立即落盘 —— 进程崩了也能留下已发生的步骤。"""
+    """一次对话一个实例。每次 add 立即 flush —— 进程崩了也能留下已发生的步骤。
+
+    L3：**保持一个文件句柄**，而不是每行 open/append/close。
+    每行开关一次文件在 Windows 上约 1ms，一轮 7~8 行就是 8~9ms 的**同步** I/O；
+    这些时间发生在事件循环里，50 并发时会把"并发"压成串行（压测里 queue p50 从
+    几十毫秒涨到几百毫秒，就是这个原因）。
+    保持句柄 + 每行 flush，落盘语义不变（数据进 OS 缓冲，进程崩溃也不会丢），
+    但系统调用从 8 次降到 1 次。
+    """
 
     def __init__(self, trace_id: str, trace_dir: Path, *, session_id: str = "", prompt_version: str = "") -> None:
         self.trace_id = trace_id
@@ -53,22 +61,43 @@ class TraceRecorder:
         self.prompt_version = prompt_version
         self.steps: list[TraceStep] = []
         self._closed = False
+        self._fh: Any = None
+        #: 写 META 时用的版本。收尾只在"写的时候不知道版本"时才重写文件。
+        self._header_version = ""
         self._path = self.trace_dir / datetime.now().strftime("%Y-%m-%d") / f"{trace_id}.jsonl"
+        self._is_new = not self._path.exists()
         self._ensure()
 
     # ------------------------------------------------------------------
 
     def _ensure(self) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        if not self._path.exists():
-            header = {
-                "trace_id": self.trace_id,
-                "session_id": self.session_id,
-                "prompt_version": self.prompt_version,
-                "started_at": _now_iso(),
-                "kind": "META",
-            }
-            self._path.write_text(json.dumps(header, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    def _write_line(self, line: str) -> None:
+        if self._fh is None:
+            self._fh = self._path.open("a", encoding="utf-8")
+            if self._is_new:
+                # META 和第一行一起写：省掉一次 open（这个盘 open 一次约 2~4ms，
+                # 一轮两次 open 就是并发压不上去的主因之一）。
+                self._is_new = False
+                self._header_version = self.prompt_version
+                self._fh.write(json.dumps(self._header(), ensure_ascii=False) + "\n")
+        self._fh.write(line + "\n")
+        self._fh.flush()
+
+    def _header(self) -> dict[str, Any]:
+        return {
+            "trace_id": self.trace_id,
+            "session_id": self.session_id,
+            "prompt_version": self.prompt_version,
+            "started_at": _now_iso(),
+            "kind": "META",
+        }
+
+    def _close_fh(self) -> None:
+        if self._fh is not None:
+            self._fh.close()
+            self._fh = None
 
     def add(
         self,
@@ -94,15 +123,13 @@ class TraceRecorder:
         )
         self.steps.append(step)
         if not self._closed:
-            with self._path.open("a", encoding="utf-8") as fh:
-                fh.write(step.to_json() + "\n")
+            self._write_line(step.to_json())
         return step
 
     def close(self, *, cost_yuan: float = 0.0, total_ms: int = 0, degraded: bool = False) -> None:
         if self._closed:
             return
         self._closed = True
-        self._sync_header_version()
         footer = {
             "kind": "SUMMARY",
             "trace_id": self.trace_id,
@@ -113,8 +140,10 @@ class TraceRecorder:
             "degraded": degraded,
             "ended_at": _now_iso(),
         }
-        with self._path.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(footer, ensure_ascii=False) + "\n")
+        self._write_line(json.dumps(footer, ensure_ascii=False))
+        # 先关句柄，再回头补齐 META 行（两个写者不能同时开着同一文件）
+        self._close_fh()
+        self._sync_header_version()
 
     def _sync_header_version(self) -> None:
         """META 行是在知道 prompt 版本之前写的。
@@ -122,7 +151,8 @@ class TraceRecorder:
         收尾时把它补齐，否则每个 trace 文件的第一行都是 `"prompt_version": ""`，
         扫文件做归因的人会以为版本丢了。
         """
-        if not self.prompt_version:
+        if not self.prompt_version or self._header_version == self.prompt_version:
+            # 建 trace 时就知道版本（api/chat.py 传了 tier）→ 不用回读整个文件
             return
         try:
             lines = self._path.read_text(encoding="utf-8").splitlines()

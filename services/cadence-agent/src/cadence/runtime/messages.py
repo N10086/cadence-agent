@@ -78,6 +78,22 @@ def humanize(error: ToolError) -> tuple[str, list[dict[str, Any]]]:
         ]
         return _with_tail(text, suggestions), suggestions
 
+    if code is ErrorCode.OVERLOADED:
+        text = "现在同时在处理的请求太多了，我这边先把这次挡下来，没有让它排队干等。"
+        suggestions = [
+            {"hint": "几秒后重试", "reason": "入口有界队列，满即 503 而不是无限排队"},
+            {"hint": "少开几个并发的会话", "reason": "队列容量是 64"},
+        ]
+        return _with_tail(text, suggestions), suggestions
+
+    if code is ErrorCode.SESSION_BUSY:
+        text = "这个会话的上一条消息还在处理，我等了 20 秒也没轮到，所以先放弃这次。"
+        suggestions = [
+            {"hint": "等上一条处理完再发", "reason": "同一会话串行，避免上下文互相覆盖"},
+            {"hint": "换一个新会话发这条", "reason": "不同会话互不影响"},
+        ]
+        return _with_tail(text, suggestions), suggestions
+
     # 其余错误码：message 本身是业务语言（「任务已被修改」「依赖未完成」），可以直出。
     return error.message, list(error.suggestions)
 

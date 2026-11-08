@@ -115,6 +115,10 @@ def _status_for(exc: ToolError) -> int:
         ErrorCode.LOOP_DETECTED: 422,
         ErrorCode.BUDGET_EXCEEDED: 422,
         ErrorCode.UPSTREAM_UNAVAILABLE: 503,
+        # L3：整机忙 → 503；单个会话忙 → 409；整轮超时 → 504
+        ErrorCode.OVERLOADED: 503,
+        ErrorCode.SESSION_BUSY: 409,
+        ErrorCode.TURN_TIMEOUT: 504,
     }
     return mapping.get(exc.code, 500)
 

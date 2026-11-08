@@ -3,11 +3,23 @@
 这里故意不用 FastAPI 的 Depends 注入链：工具层需要的东西（core client、trace、
 confirm store）是"每轮一个"的，塞进 DI 反而绕。一个 Runtime 单例 + 一个 per-turn
 TurnContext，边界更清楚。
+
+**L3 的资源图（只允许单向边）**
+
+    会话锁（每 session 一把，唯一可等待锁）
+        │
+        ▼
+    LLM 信号量（16，叶子节点；只在真正打 provider 的那一小段持有）
+
+为什么这条注释必须留在这里：死锁的形式化理由就是"资源图无环"。任何新加的
+`asyncio.Lock/Semaphore/Condition` 都要问一句：它会不会被某条路径反向拿？
+准入队列（`runtime/queue.py`）刻意做成无锁，就是为了不往这张图里加边。
 """
 
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Any
 
 from .config import Settings, get_settings
@@ -18,11 +30,15 @@ from .llm.retry import Breaker
 from .llm.router import Tier
 from .runtime.errors import ErrorCode, ToolError
 from .runtime.loop import Loop
+from .runtime.queue import TurnQueue
 from .runtime.session import SessionStore
 from .runtime.trace import new_trace_id
+from .runtime.watchdog import watch_turn
 from .api.sse import StreamStore
 from .tools.core_client import CoreClient
 from .tools.registry import build_default_registry
+
+logger = logging.getLogger("cadence")
 
 
 class Runtime:
@@ -54,6 +70,10 @@ class Runtime:
         )
         self.confirms = ConfirmStore(settings.confirm_ttl_s)
         self.streams = StreamStore()
+        # L3-1：准入。无锁（见 runtime/queue.py 的说明），不会给资源图加边。
+        self.queue = TurnQueue(settings.turn_queue_capacity)
+        # L3-2：全局 LLM 信号量。叶子节点：只有 provider 调用点会拿它。
+        self.llm_semaphore = asyncio.Semaphore(settings.llm_max_concurrency)
         self.loop = Loop(
             settings=settings,
             registry=self.registry,
@@ -62,8 +82,11 @@ class Runtime:
             # 装配层可以在这里换成真正的快模型，Loop 无需改动。
             fast_llm=getattr(self.llm, "fast_llm", None) or self.llm,
             breaker=self.breaker,
+            llm_semaphore=self.llm_semaphore,
         )
         self._background: set[asyncio.Task[Any]] = set()
+        #: trace_id → turn 任务。watchdog 靠它打印"该 trace 的协程栈"。
+        self.turn_tasks: dict[str, asyncio.Task[Any]] = {}
 
     # ------------------------------------------------------------------
 
@@ -79,11 +102,23 @@ class Runtime:
         self._background.add(task)
         task.add_done_callback(self._background.discard)
 
+    def watch(self, task: asyncio.Task[Any], trace_id: str) -> asyncio.Task[Any]:
+        """给一个 turn 任务挂看门狗：到点只打栈，取消仍由 chat 的 asyncio.timeout 负责。"""
+        self.turn_tasks[trace_id] = task
+        task.add_done_callback(lambda _t: self.turn_tasks.pop(trace_id, None))
+        watcher = asyncio.create_task(
+            watch_turn(task, trace_id=trace_id, timeout_s=self.settings.turn_timeout_s, logger=logger),
+            name=f"watchdog:{trace_id}",
+        )
+        self.track(watcher)
+        return watcher
+
     async def aclose(self) -> None:
         for task in list(self._background):
             task.cancel()
         if self._background:
             await asyncio.gather(*self._background, return_exceptions=True)
+        self.turn_tasks.clear()
         for obj in (self.core, self.llm):
             closer = getattr(obj, "aclose", None)
             if closer is not None:

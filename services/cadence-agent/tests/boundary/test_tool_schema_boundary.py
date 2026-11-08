@@ -11,12 +11,30 @@ import json
 import pytest
 
 from cadence.guard.permissions import FORBIDDEN_TOOLS
-from cadence.tools.registry import build_default_registry, provider_name, tool_schema
+from cadence.tools.base import Tool
+from cadence.tools.registry import ToolRegistry, build_default_registry, provider_name, tool_schema
 
 
 @pytest.fixture
 def registry():
     return build_default_registry()
+
+
+def test_openai_tools_is_cached_but_invalidated_by_register() -> None:
+    """L3：schema 生成是纯 CPU（9 个 model，每次 5~15ms），每次 LLM 调用都重建会把
+    事件循环堵成串行。缓存必须在注册新工具时失效，否则动态注册（测试/插件）看不到。"""
+    async def handler(_args, _ctx):  # pragma: no cover - 只用来占位
+        return None
+
+    reg = ToolRegistry()
+    reg.register(Tool(name="a.one", description="x", handler=handler))
+    first = reg.openai_tools()
+    assert first is reg.openai_tools(), "同一工具集应复用缓存"
+
+    reg.register(Tool(name="a.two", description="y", handler=handler))
+    refreshed = reg.openai_tools()
+    assert refreshed is not first
+    assert len(refreshed) == 2
 
 
 def schema(registry, name: str) -> dict:

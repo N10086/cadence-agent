@@ -112,6 +112,14 @@ class Settings(BaseSettings):
     session_max_lru: int = 200
     session_recent_turns: int = 3
     session_summary_chars: int = 300
+    #: L3-3：同一会话的上一轮没结束时，第二条消息等锁的上限。超时 → 409 SESSION_BUSY。
+    session_lock_timeout_s: float = 20.0
+
+    # ---------- 并发（L3） ----------
+    #: L3-1 入口准入：同时"排队 + 运行"的 turn 上限。满 → 503 OVERLOADED，不无限排队。
+    turn_queue_capacity: int = Field(64, ge=1)
+    #: L3-2 全局 LLM 信号量。只在真正调 provider 的那一小段持有（叶子节点）。
+    llm_max_concurrency: int = Field(16, ge=1)
 
     # ---------- 落盘 ----------
     data_dir: str = ""  # 空 = <repo>/data/agent
