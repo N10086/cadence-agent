@@ -174,12 +174,18 @@ class Loop:
         tier: str | None = None,
         llm: LLMClient | None = None,
     ) -> TurnOutcome:
-        client = llm or self.llm
         started = time.perf_counter()
 
         # ---- CLASSIFY（路由 + 意图 + 歧义）------------------------------
         decision = route(user_message)
         chosen_tier = tier or decision.tier.value
+        # 双模型按 tier 选 client：reason 用 reasoning 模型（deepseek-flash），
+        # fast 用非 reasoning 别名（deepseek-chat，更快更便宜）。
+        # 显式传入 llm（测试/降级）时优先用它；否则按 tier 选。
+        if llm is not None:
+            client = llm
+        else:
+            client = self.fast_llm if chosen_tier == "fast" else self.llm
         ctx.tier = chosen_tier
         ctx.trace.add(
             "LLM",
@@ -279,6 +285,9 @@ class Loop:
                 tokens_out=response.tokens_out,
                 detail={
                     "tier": call_ctx.tier,
+                    # provider 可能把请求的 model 映射成别的名字（如 chat -> flash），
+                    # 这里单独记"我请求的是哪个模型"，评测才能验证路由真的换了模型。
+                    "requested_model": getattr(call_ctx.client, "model", "") or "",
                     "model": response.model,
                     "tool_calls": [c.name for c in response.tool_calls],
                     "text_len": len(response.text or ""),

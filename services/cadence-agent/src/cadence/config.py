@@ -73,7 +73,10 @@ class Settings(BaseSettings):
 
     deepseek_api_key: str = ""
     deepseek_base_url: str = "https://api.deepseek.com/v1"
+    #: 推理层：会返回 reasoning_content（"v4 flash"）
     deepseek_model: str = "deepseek-flash"
+    #: 快层：同一模型的非 reasoning 别名，不返回思考、更快更便宜
+    deepseek_fast_model: str = "deepseek-chat"
     deepseek_timeout_s: float = 0.0
 
     # 路由：只有一个 provider 时，仍然决定"用短提示还是长提示"，

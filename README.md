@@ -140,7 +140,10 @@ python -m evals.cli run --all --llm live --core live --allow-reset `
 ## 已知限制
 
 - **单 worker**：会话锁、SSE 缓冲都在进程内，多副本需要会话粘滞或外部存储，本版不做。
-- **单 provider**：只有 DeepSeek；L1 "换模型"实际是换 fast 提示（同 provider）。
+- **同一个 provider 内双模型**：路由判 `reason` 用 `deepseek-flash`（返回 `reasoning_content`），
+  判 `fast` 用 `deepseek-chat`（同一模型的非 reasoning 别名，更快更便宜）。
+  没有 GLM，跨 provider 降级仍不可用。切换方式：改 `.env` 的
+  `DEEPSEEK_MODEL` / `DEEPSEEK_FAST_MODEL` 后 `docker compose up -d --force-recreate agent`。
 - **取消任务不支持**：Core 的 PATCH 不接受 status；取消走 `meta.clarify` 告知边界。
 - **fake 数字不是结论**：README 与报告里的 fake 数字只证明流水线通，能力结论必须 live 跑。
 - **无多用户/登录**：单用户本地系统；CORS 只对 `/api/**` 放开。

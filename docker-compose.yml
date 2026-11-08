@@ -26,8 +26,11 @@ services:
     container_name: cadence-core
     environment:
       CORE_PORT: "18080"
-      DB_URL: jdbc:postgresql://postgres:5432/TODO
-      DB_USER: cadence
+      # 默认 TODO（演示库）；想切到评测库就设 CORE_DB_URL，例如：
+      #   $env:CORE_DB_URL='jdbc:postgresql://postgres:5432/benchmark'
+      #   docker compose up -d --force-recreate core
+      DB_URL: ${CORE_DB_URL:-jdbc:postgresql://postgres:5432/TODO}
+      DB_USER: ${CORE_DB_USER:-cadence}
       DB_PASSWORD: ${DB_PASSWORD:-cadence}
       # 容器里没有 ../cadence-web；Dockerfile 把静态文件拷到 /app/web
       CORE_WEB_DIR: /app/web
@@ -54,7 +57,8 @@ services:
       LLM_MODE: ${LLM_MODE:-auto}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
-      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-flash}
+      DEEPSEEK_FAST_MODEL: ${DEEPSEEK_FAST_MODEL:-deepseek-chat}
       ZHIPU_API_KEY: ${ZHIPU_API_KEY:-}
       DATA_DIR: /data/agent
       # 评测时设为 2026-11-08T10:30:00+08:00；日常留空走真实时间

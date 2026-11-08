@@ -55,7 +55,14 @@ class Runtime:
 
         self.registry = build_default_registry()
         self.core = core if core is not None else CoreClient(settings)
-        self.llm = llm or build_llm(settings)
+        # 双模型：reason 走 reasoning 模型（deepseek-flash），fast 走非 reasoning 别名
+        # （deepseek-chat）。注入 llm 时（测试/降级）两层共用它，避免测试意外打真网。
+        if llm is not None:
+            self.llm = llm
+            self.fast_llm = llm
+        else:
+            self.llm = build_llm(settings)
+            self.fast_llm = build_fast_llm(settings)
         self.breaker = Breaker(
             "llm",
             failure_threshold=settings.breaker_failure_threshold,
@@ -85,9 +92,8 @@ class Runtime:
             settings=settings,
             registry=self.registry,
             llm=self.llm,
-            # 单 provider（ASSUMED D4）：L1 降级复用同一个 client，只换 fast 提示。
-            # 装配层可以在这里换成真正的快模型，Loop 无需改动。
-            fast_llm=getattr(self.llm, "fast_llm", None) or self.llm,
+            # 双模型：L1 降级换到 fast client（非 reasoning 别名），不只是换提示。
+            fast_llm=self.fast_llm,
             breaker=self.breaker,
             llm_semaphore=self.llm_semaphore,
             clock=frozen_clock,
@@ -127,7 +133,7 @@ class Runtime:
         if self._background:
             await asyncio.gather(*self._background, return_exceptions=True)
         self.turn_tasks.clear()
-        for obj in (self.core, self.llm):
+        for obj in (self.core, self.llm, self.fast_llm):
             closer = getattr(obj, "aclose", None)
             if closer is not None:
                 await closer()
@@ -149,10 +155,7 @@ class Runtime:
         return {"status": status, "core": core_status, "llmMode": self.mode}
 
 
-def build_llm(settings: Settings) -> LLMClient:
-    if settings.resolved_llm_mode == "fake":
-        return FakeLLM(default_script())
-
+def _deepseek_client(settings: Settings, model: str) -> LLMClient:
     from .llm.deepseek import DeepSeekClient
 
     if not settings.deepseek_api_key.strip():
@@ -164,10 +167,24 @@ def build_llm(settings: Settings) -> LLMClient:
     return DeepSeekClient(
         api_key=settings.deepseek_api_key,
         base_url=settings.deepseek_base_url,
-        model=settings.deepseek_model,
+        model=model,
         timeout_s=read_s,
         connect_timeout_s=connect_s,
     )
+
+
+def build_llm(settings: Settings) -> LLMClient:
+    """推理层客户端：会返回 reasoning_content（deepseek-flash）。"""
+    if settings.resolved_llm_mode == "fake":
+        return FakeLLM(default_script())
+    return _deepseek_client(settings, settings.deepseek_model)
+
+
+def build_fast_llm(settings: Settings) -> LLMClient:
+    """快层客户端：非 reasoning 别名（deepseek-chat），更快更便宜。"""
+    if settings.resolved_llm_mode == "fake":
+        return FakeLLM(default_script())
+    return _deepseek_client(settings, settings.deepseek_fast_model)
 
 
 def default_script() -> list[Any]:
