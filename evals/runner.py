@@ -98,6 +98,12 @@ class CaseResult:
     tags: list[str] = field(default_factory=list)
 
     tool_steps: list[dict[str, Any]] = field(default_factory=list)
+    #: 逐轮明细（LLM 的 text/tool_calls、TOOL 的 args/summary、GUARD），供详细报告使用。
+    steps_detail: list[dict[str, Any]] = field(default_factory=list)
+    #: 该用例的可操作白名单 + 运行中实际出现的可见 id。
+    whitelist: dict[str, Any] = field(default_factory=dict)
+    final_answer: str = ""
+    mode: str = ""
     llm_ms: int = 0
     tool_ms: int = 0
     queue_wait_ms: float = 0.0
@@ -170,6 +176,10 @@ class Runner:
         self.core_mode = core
         self.allow_reset = allow_reset
         self.snapshot_dir = Path(snapshot_dir) if snapshot_dir else None
+        #: 每次运行一个随机后缀，混进种子的幂等键。
+        #: 否则 Core 会命中上一次运行留下的 idempotency_record，把**已删除的旧任务 id**
+        #: 重放回来（表现为 TASK_ID_NOT_FOUND / 用旧 id 调工具）。
+        self.run_nonce = uuid.uuid4().hex[:8]
         self.agent_url = agent_url.rstrip("/")
         self.core_url = core_url.rstrip("/")
         self.repeat = max(1, int(repeat))
@@ -273,6 +283,7 @@ class Runner:
             core_obj,
             label=self.core_mode,
             allow_reset=self.allow_reset,
+            run_nonce=self.run_nonce,
             snapshot_dir=self.snapshot_dir,
         )
         runtime: Runtime | None = None
@@ -299,15 +310,18 @@ class Runner:
                 if samples:
                     outcome["queue_wait_ms"] = float(samples[-1])
             post = await sandbox.snapshot()
-            row = self._build_result(case, resolved, outcome, pre, post)
+            row = self._build_result(case, resolved, outcome, pre, post, seed)
+            self._save_case(case_dir, case, resolved, row, outcome, pre, post)
             return row
         except Exception as exc:  # noqa: BLE001 - 单条用例炸了不能拖垮整份报告
-            return CaseResult(
+            failed = CaseResult(
                 case_id=case_id,
                 group=case.group,
                 tags=list(case.tags),
                 error=f"{type(exc).__name__}: {exc}"[:400],
             )
+            self._save_case(case_dir, case, {}, failed, {}, [], [])
+            return failed
         finally:
             if http is not None:
                 await http.aclose()
@@ -401,6 +415,72 @@ class Runner:
     # CaseResult
     # ------------------------------------------------------------------
 
+    def _save_case(
+        self,
+        case_dir: Path,
+        case: Case,
+        resolved: dict[str, Any],
+        row: CaseResult,
+        outcome: dict[str, Any],
+        pre: list[dict[str, Any]],
+        post: list[dict[str, Any]],
+    ) -> None:
+        """每条用例落一份 `case.json`：详细报告的唯一数据源。
+
+        为什么在 runner 里存，而不是后处理 trace：
+        trace 只有"每一步"，没有"期望 vs 实际"、白名单、最终回答和 pass/fail；
+        session 只有对话，没有工具参数。只有 runner 同时握有这些。
+        """
+        done = (outcome or {}).get("done") or {}
+        payload = {
+            "case": {
+                "id": case.id,
+                "group": case.group,
+                "input": case.input,
+                "tags": list(case.tags),
+                "allow_noop": case.allow_noop,
+            },
+            "mode": row.mode,
+            "model": row.model,
+            "prompt_version": row.prompt_version,
+            "trace_id": row.trace_id,
+            "expected": row.tool_calls_expected,
+            "actual": row.tool_calls_actual,
+            "whitelist": row.whitelist,
+            "steps": row.steps_detail,
+            "summary": {
+                "steps": row.steps,
+                "latency_ms": row.latency_ms,
+                "llm_ms": row.llm_ms,
+                "tool_ms": row.tool_ms,
+                "tokens_in": row.tokens_in,
+                "tokens_out": row.tokens_out,
+                "cost_yuan": row.cost_yuan,
+                "cost_micro_yuan": int(round(row.cost_yuan * 1_000_000)),
+                "ended_by": row.ended_by,
+                "degraded": row.degraded,
+                "queue_wait_ms": row.queue_wait_ms,
+            },
+            "result": {
+                "passed": row.passed,
+                "tool_calls_ok": row.tool_calls_ok,
+                "final_state_ok": row.final_state_ok,
+                "must_not_call_ok": row.must_not_call_ok,
+                "failed_reason": row.failed_reason,
+                "error": row.error,
+            },
+            "pre_state": pre,
+            "post_state": post,
+            "final_answer": row.final_answer,
+            "done": done,
+        }
+        try:
+            (case_dir / "case.json").write_text(
+                json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+        except OSError:
+            pass
+
     def _build_result(
         self,
         case: Case,
@@ -408,6 +488,7 @@ class Runner:
         outcome: dict[str, Any],
         pre: list[dict[str, Any]],
         post: list[dict[str, Any]],
+        seed: Any = None,
     ) -> CaseResult:
         expect = resolved["expect"]
         done = outcome["done"]
@@ -514,6 +595,30 @@ class Runner:
             safety_attempted=safety_attempted,
             error="；".join(tool_failures),
         )
+        # ---- 逐轮明细 & 白名单（详细报告用）----
+        referenced = sorted(
+            {
+                str((call.get("args") or {}).get("task_id"))
+                for call in actual
+                if (call.get("args") or {}).get("task_id")
+            }
+        )
+        visible = sorted(
+            {
+                str(task_id)
+                for step in steps
+                for task_id in ((step.get("detail") or {}).get("visible_ids") or [])
+            }
+        )
+        row.steps_detail = steps
+        row.whitelist = {
+            "aliases": dict(getattr(seed, "aliases", {}) or {}),
+            "versions": dict(getattr(seed, "versions", {}) or {}),
+            "referenced": referenced,
+            "visible": visible,
+        }
+        row.final_answer = str(done.get("text") or "")
+        row.mode = f"{self.llm_mode}+{self.core_mode}"
         return row
 
 

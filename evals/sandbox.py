@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -21,6 +22,19 @@ from typing import Any
 from cadence.runtime.errors import ErrorCode, ToolError
 
 from .dataset import Case
+
+
+def _idem_key(case_id: str, title: str, run_nonce: str = "") -> str:
+    """幂等键必须是 ASCII，且每次运行唯一。
+
+    两个坑：
+    1. HTTP header 只能是 ASCII，而标题是中文 → httpx 抛 UnicodeEncodeError；
+    2. 键如果固定，Core 会命中上次运行留下的 idempotency_record，
+       把已删除的旧任务 id 当作"首次响应"重放回来。
+    """
+    digest = hashlib.sha1(title.encode("utf-8")).hexdigest()[:10]
+    prefix = f"{run_nonce}-" if run_nonce else ""
+    return f"eval-seed-{prefix}{case_id}-{digest}"
 
 
 class ResetNotAllowed(RuntimeError):
@@ -48,11 +62,13 @@ class CoreSandbox:
         label: str = "fake",
         allow_reset: bool = False,
         snapshot_dir: Path | None = None,
+        run_nonce: str = "",
     ) -> None:
         self.core = core
         self.label = label
         self.allow_reset = allow_reset
         self.snapshot_dir = snapshot_dir
+        self.run_nonce = run_nonce
         self.reset_count = 0
 
     # ------------------------------------------------------------------
@@ -145,7 +161,7 @@ class CoreSandbox:
                 "POST",
                 "/api/v1/tasks",
                 body=body,
-                idempotency_key=f"eval-seed-{case.id}-{title}",
+                idempotency_key=_idem_key(case.id, title, self.run_nonce),
             )
             created = copy.deepcopy(created or {})
             task_id = str(created.get("id"))

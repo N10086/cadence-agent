@@ -68,3 +68,6 @@ services/cadence-web/docs/.p-l5/
 
 # ---------- 临时目录 ----------
 .tmp/
+
+# ---------- 评测运行产生的会话（每次 run 一个，别入库）----------
+data/agent/sessions/eval-*.json
