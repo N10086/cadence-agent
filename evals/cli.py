@@ -23,6 +23,7 @@ from .dataset import Dataset, load_dataset
 from .metrics import compute_metrics
 from .report import build_report, render_markdown
 from .runner import Runner, RunSummary
+from .sandbox import ResetNotAllowed
 
 DEFAULT_DATASET = REPO_ROOT / "evals" / "datasets" / "v1"
 DEFAULT_OUT = REPO_ROOT / "evals" / "reports"
@@ -43,6 +44,8 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--agent-url", default="http://127.0.0.1:18000", help="外部 Agent 地址（live+live）")
     parser.add_argument("--core-url", default="http://127.0.0.1:18080", help="Core 地址")
     parser.add_argument("--no-cache", action="store_true", help="禁用结果缓存")
+    parser.add_argument("--allow-reset", action="store_true", help="允许清空目标 Core 的所有任务（live 模式必须显式给）")
+    parser.add_argument("--snapshot-dir", default="", help="清空前把任务快照写到该目录")
     return parser
 
 
@@ -69,6 +72,22 @@ def main(argv: list[str] | None = None) -> int:
     if selected is None:
         return 2
 
+    # live 模型先确认真的有 key（.env 也算），否则 35 条会全以 UPSTREAM_UNAVAILABLE 失败，
+    # 看起来像"模型很差"，实际是没配置。快速失败比跑一半再猜好。
+    if args.llm == "live":
+        try:
+            from cadence.config import get_settings
+
+            if not get_settings().deepseek_api_key.strip():
+                print(
+                    "--llm live 需要 DEEPSEEK_API_KEY（.env 或环境变量）；"
+                    "没有 key 时请用 --llm fake。",
+                    file=sys.stderr,
+                )
+                return 3
+        except Exception:  # noqa: BLE001 - 配置读不出来时交给后面的真实错误
+            pass
+
     runner = Runner(
         dataset,
         llm=args.llm,
@@ -77,9 +96,14 @@ def main(argv: list[str] | None = None) -> int:
         core_url=args.core_url,
         cache=False if args.no_cache else None,
         repeat=args.repeat,
+        allow_reset=args.allow_reset,
+        snapshot_dir=args.snapshot_dir or None,
     )
     try:
         summary = asyncio.run(runner.run(selected))
+    except ResetNotAllowed as exc:
+        print(f"拒绝执行：{exc}", file=sys.stderr)
+        return 2
     except Exception as exc:  # noqa: BLE001 - CLI 要把"跑不起来"变成可读的一行
         print(f"评测失败：{type(exc).__name__}: {exc}", file=sys.stderr)
         return 1

@@ -36,7 +36,7 @@ from typing import Any
 
 import httpx
 
-from cadence.config import Settings
+from cadence.config import Settings, get_settings
 from cadence.deps import Runtime, build_llm, set_runtime
 from cadence.llm.fake import FakeLLM, call, say
 from cadence.main import create_app
@@ -47,7 +47,7 @@ from . import metrics
 from .bootstrap import REPO_ROOT
 from .cache import RunCache
 from .dataset import Case, Dataset, load_dataset, resolve_case
-from .sandbox import CoreSandbox
+from .sandbox import CoreSandbox, ResetNotAllowed
 
 #: 题面里的"今天/本周三/本周五"都相对这个时间。注入到 in-process Loop，
 #: 保证 fake 与 live 的日期语义可复现（live 外部 Agent 需自行保证时钟一致）。
@@ -162,10 +162,14 @@ class Runner:
         repeat: int = 1,
         run_root: str | Path | None = None,
         model: str | None = None,
+        allow_reset: bool = False,
+        snapshot_dir: str | Path | None = None,
     ) -> None:
         self.dataset = dataset
         self.llm_mode = llm
         self.core_mode = core
+        self.allow_reset = allow_reset
+        self.snapshot_dir = Path(snapshot_dir) if snapshot_dir else None
         self.agent_url = agent_url.rstrip("/")
         self.core_url = core_url.rstrip("/")
         self.repeat = max(1, int(repeat))
@@ -199,6 +203,14 @@ class Runner:
 
     async def run(self, cases: list[Case] | None = None) -> RunSummary:
         selected = list(cases if cases is not None else self.dataset.cases)
+        # 预检放到循环之前：reset 是"删光目标库"的操作，一条 --core live 就可能清空演示数据。
+        # 放在单条用例里会被 `_run_case` 的 except 吞成"35 条全失败"，看不出真正原因。
+        if self.core_mode == "live" and not self.allow_reset:
+            raise ResetNotAllowed(
+                "core=live 会先删光目标 Core 的所有任务，默认拒绝执行。\n"
+                "确认目标库可以清空后加 --allow-reset；建议同时加 "
+                "--snapshot-dir .tmp/eval-snapshots 先备份。"
+            )
         started = time.perf_counter()
         repeat_rows: list[list[CaseResult]] = []
 
@@ -257,7 +269,12 @@ class Runner:
         case_dir.mkdir(parents=True, exist_ok=True)
 
         core_obj: Any = FakeCore() if self.core_mode == "fake" else CoreClient(self._settings(case_dir))
-        sandbox = CoreSandbox(core_obj, label=self.core_mode)
+        sandbox = CoreSandbox(
+            core_obj,
+            label=self.core_mode,
+            allow_reset=self.allow_reset,
+            snapshot_dir=self.snapshot_dir,
+        )
         runtime: Runtime | None = None
         http: httpx.AsyncClient | None = None
 
@@ -327,10 +344,16 @@ class Runner:
         return runtime, client
 
     def _settings(self, case_dir: Path) -> Settings:
+        # ⚠️ 这里曾经写成 `os.getenv("DEEPSEEK_API_KEY", "")`：那条路**不读 `.env`**，
+        # 而且显式传参会覆盖 env_file 里的值，于是 `--llm live` 永远报
+        # "没有配置 DEEPSEEK_API_KEY"（只有把 key export 到 shell 里才能跑）。
+        # 正确顺序：真实环境变量 > `.env`（由 Settings 自己的 env_file 加载）。
+        base = get_settings()
         return Settings(
             llm_mode="fake" if self.llm_mode == "fake" else "live",
-            deepseek_api_key=os.getenv("DEEPSEEK_API_KEY", ""),
-            deepseek_model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
+            deepseek_api_key=os.getenv("DEEPSEEK_API_KEY") or base.deepseek_api_key,
+            deepseek_model=os.getenv("DEEPSEEK_MODEL") or base.deepseek_model,
+            deepseek_base_url=os.getenv("DEEPSEEK_BASE_URL") or base.deepseek_base_url,
             core_base_url=self.core_url,
             core_retry_times=1,
             core_retry_backoff_s=0.0,

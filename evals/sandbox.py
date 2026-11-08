@@ -12,12 +12,23 @@
 from __future__ import annotations
 
 import copy
+import json
 from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from cadence.runtime.errors import ErrorCode, ToolError
 
 from .dataset import Case
+
+
+class ResetNotAllowed(RuntimeError):
+    """目标 Core 里还有数据，而调用方没有明确允许清空。
+
+    这是评测器最危险的一步：`reset()` 会通过 API 把**所有可见任务**删掉。
+    一条 `--core live` 命令就能清空演示库，所以默认拒绝，必须显式 `--allow-reset`。
+    """
 
 
 @dataclass
@@ -30,25 +41,60 @@ class SeedResult:
 class CoreSandbox:
     """对 FakeCore / CoreClient 都成立的最小沙箱接口。"""
 
-    def __init__(self, core: Any, *, label: str = "fake") -> None:
+    def __init__(
+        self,
+        core: Any,
+        *,
+        label: str = "fake",
+        allow_reset: bool = False,
+        snapshot_dir: Path | None = None,
+    ) -> None:
         self.core = core
         self.label = label
+        self.allow_reset = allow_reset
+        self.snapshot_dir = snapshot_dir
         self.reset_count = 0
 
     # ------------------------------------------------------------------
 
     async def reset(self) -> None:
-        """清空所有可见任务。最多 100 批，避免 Core 异常时死循环。"""
+        """清空所有可见任务。最多 100 批，避免 Core 异常时死循环。
+
+        **live 模式下目标库非空时默认拒绝**（见 `ResetNotAllowed`）：
+        fake 模式无所谓，live 模式一条命令就能删光演示数据。
+        允许清空时，若给了 `snapshot_dir`，会先落一份 `pre-reset-*.json`。
+        """
         self.reset_count += 1
-        for _ in range(100):
+
+        first = await self.list_tasks()
+        if first and self.label == "live" and not self.allow_reset:
+            more = "+" if len(first) >= 50 else ""
+            raise ResetNotAllowed(
+                f"目标 Core 里还有 {len(first)}{more} 条可见任务，reset 会通过 API "
+                "把它们全部删掉。\n"
+                "确认要清空：加 --allow-reset（建议同时加 "
+                "--snapshot-dir .tmp/eval-snapshots 先留一份备份）。"
+            )
+
+        dumped: list[dict[str, Any]] = []
+        batches = 0
+        while batches < 100:
+            batches += 1
             items = await self.list_tasks()
             if not items:
-                return
+                break
+            dumped.extend(items)
             for task in items:
                 await self._delete(task["id"])
             if len(items) < 50:
-                return
-        raise RuntimeError("reset 超过 100 批仍未清空，Core 可能没有真正删除任务")
+                break
+        else:
+            raise RuntimeError("reset 超过 100 批仍未清空，Core 可能没有真正删除任务")
+
+        if self.snapshot_dir is not None and dumped:
+            self.snapshot_dir.mkdir(parents=True, exist_ok=True)
+            path = self.snapshot_dir / f"pre-reset-{datetime.now():%Y%m%d-%H%M%S}.json"
+            path.write_text(json.dumps(dumped, ensure_ascii=False, indent=2), encoding="utf-8")
 
     async def list_tasks(self, **params: Any) -> list[dict[str, Any]]:
         query = {"limit": 50, **params}
