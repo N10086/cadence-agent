@@ -289,6 +289,10 @@ def main(argv: list[str]) -> int:
 
     slug = model.replace(".", "").replace("/", "-")
     path = REPO / "evals" / "reports" / f"{datetime.now():%Y-%m-%d}-详细-{slug}.md"
+    # 绝不覆盖已有报告：同名（同一天、同模型）但 run 不同时，加上 run 目录后缀。
+    # 详细报告是"历史对比"的证据，覆盖一次就丢一次基线。
+    if path.exists():
+        path = path.with_name(f"{path.stem}-{run_root.name}.md")
     path.write_text("\n".join(out) + "\n", encoding="utf-8")
     print(f"wrote {path}  ({len(out)} lines, {passed}/{total} passed, {micro} micro-yuan)")
     return 0

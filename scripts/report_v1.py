@@ -261,7 +261,7 @@ def main(argv: list[str]) -> int:
                        f"{result.get('failed_reason') or result.get('error')}")
         out.append("")
         out.append("> 逐条字段级 diff、每轮 reasoning/决策/行为，见 "
-                   "[`2026-11-08-详细-deepseek-flash.md`](2026-11-08-详细-deepseek-flash.md)。\n")
+                   "[`2026-11-08-详细-deepseek-flash-v1.md`](2026-11-08-详细-deepseek-flash-v1.md)。\n")
 
     out.append("## 五、与上一版对比\n")
     out.append("| 版本 | 模型 | 工具注入 | 通过率 | p50 / p95 | 每轮成本 |")

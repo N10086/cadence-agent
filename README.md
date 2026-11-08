@@ -105,8 +105,9 @@ python -m evals.cli run --all --llm live --core live --allow-reset `
 ## 评测结果（2026-11-08 · live + live，benchmark 库，V1）
 
 - **V1 完整报告（结果 + 代码改动说明）**：[`evals/reports/V1.md`](evals/reports/V1.md)
-- 逐条逐轮详细报告：[`evals/reports/2026-11-08-详细-deepseek-flash.md`](evals/reports/2026-11-08-详细-deepseek-flash.md)
-- 历史对比：[`2026-11-08-live-flash.md`](evals/reports/2026-11-08-live-flash.md)（单模型 / 全量工具）、
+- **V1 逐轮明细**：[`2026-11-08-详细-deepseek-flash-v1.md`](evals/reports/2026-11-08-详细-deepseek-flash-v1.md)
+- 上一版原始明细（23/35，用于对比）：[`2026-11-08-详细-deepseek-flash.md`](evals/reports/2026-11-08-详细-deepseek-flash.md)
+- 历史汇总：[`2026-11-08-live-flash.md`](evals/reports/2026-11-08-live-flash.md)（单模型 / 全量工具）、
   [`2026-11-08-live-chat.md`](evals/reports/2026-11-08-live-chat.md)（非 reasoning 别名）
 
 | 指标 | 实测 | 目标 | 判定 |
