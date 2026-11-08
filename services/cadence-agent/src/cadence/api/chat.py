@@ -123,10 +123,16 @@ async def _run_turn(
     trace_id: str,
     buf: sse.StreamBuffer,
 ) -> None:
-    """准入名额的唯一归还点：无论正常、超时、取消、异常，都必须 leave。"""
+    """准入名额的唯一归还点：无论正常、超时、取消、异常，都必须 leave。
+
+    `started` 必须在**这里**取：等会话锁的时间也是用户真实等待的一部分。
+    如果放到拿到锁之后再计时，SESSION_BUSY 的 trace 会写成 `total_ms=0`，
+    而用户实际已经等了 20s —— 评测的 latency 口径直接失真。
+    """
+    started = time.perf_counter()
     rt.queue.started(trace_id)
     try:
-        await _run_turn_serialized(rt, session_id, message, trace_id, buf)
+        await _run_turn_serialized(rt, session_id, message, trace_id, buf, started)
     finally:
         rt.queue.leave(trace_id)
 
@@ -137,6 +143,7 @@ async def _run_turn_serialized(
     message: str,
     trace_id: str,
     buf: sse.StreamBuffer,
+    started: float,
 ) -> None:
     base_emit = make_emitter(buf)
     # 记下本轮出现过的 error 事件：模型有时会把 501/503 消化成一句自己的话，
@@ -148,7 +155,6 @@ async def _run_turn_serialized(
             seen_errors.append(data)
         await base_emit(event, data)
 
-    started = time.perf_counter()
     outcome = None
     ended_by = "finish"
 
@@ -157,7 +163,7 @@ async def _run_turn_serialized(
     try:
         lock = await rt.sessions.acquire(session_id, timeout_s=rt.settings.session_lock_timeout_s)
     except ToolError as busy:
-        await _finish_busy(rt, session_id, trace_id, buf, busy, base_emit)
+        await _finish_busy(rt, session_id, trace_id, buf, busy, base_emit, started)
         return
 
     try:
@@ -278,8 +284,14 @@ async def _finish_busy(
     buf: sse.StreamBuffer,
     error: ToolError,
     emit,
+    started: float,
 ) -> None:
-    """等会话锁超时：写 trace + 推 error + 用 done 收尾（endedBy=busy）。"""
+    """等会话锁超时：写 trace + 推 error + 用 done 收尾（endedBy=busy）。
+
+    `total_ms` 必须是从 `_run_turn` 入口算起的真实等待，而不是 0：
+    用户为这一轮等了 20s，评测却记成 0ms，会让"会话忙"在时延统计里凭空消失。
+    """
+    total_ms = int((time.perf_counter() - started) * 1000)
     trace = TraceRecorder(trace_id, rt.settings.resolved_trace_dir, session_id=session_id)
     trace.add(
         KIND_GUARD, "runtime.session_busy", ok=False,
@@ -302,7 +314,7 @@ async def _finish_busy(
             "errorCode": error.code.value,
         },
     )
-    trace.close(cost_yuan=0.0, total_ms=0, degraded=False)
+    trace.close(cost_yuan=0.0, total_ms=total_ms, degraded=False)
     await buf.close()
 
 

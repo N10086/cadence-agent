@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 from cadence.deps import set_runtime
 from cadence.main import create_app
 from cadence.runtime.errors import ErrorCode, ToolError
+from cadence.runtime.trace import load_trace
 
 
 @pytest.fixture
@@ -122,6 +123,11 @@ def test_second_message_on_busy_session_is_reported_as_session_busy(client, runt
     assert done["data"]["endedBy"] == "busy"
     assert done["data"]["errorCode"] == "SESSION_BUSY"
     assert done["data"]["suggestions"], "会话忙要给下一步建议"
+
+    # L4 前置：busy 轮的真实等待必须落进 trace。等锁 0.05s，total_ms 不能是 0。
+    trace = load_trace(runtime.settings.resolved_trace_dir, second.json()["data"]["traceId"])
+    assert trace is not None
+    assert trace["totalMs"] >= 50, f"busy 轮 total_ms 丢了真实等待：{trace['totalMs']}"
 
     errors = [e for e in events if e["event"] == "error"]
     assert errors and errors[0]["data"]["code"] == "SESSION_BUSY"
