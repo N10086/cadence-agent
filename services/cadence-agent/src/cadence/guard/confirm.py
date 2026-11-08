@@ -43,6 +43,42 @@ class PendingConfirm:
     def expires_in(self, now: float | None = None) -> int:
         return max(0, int(self.ttl_s - (self._now(now) - self.created_at)))
 
+    def scope_mismatch(self, tool: str, args: dict[str, Any]) -> str | None:
+        """检查「用户确认的方案」和「模型现在要执行的调用」是不是同一件事。
+
+        令牌只绑工具名是不够的：用户确认删除 A，模型可以拿同一个令牌删除 B。
+        这里先比 tool，再比 task_id；split 没有单个 task_id，就比子任务序列。
+        返回 None 表示可以继续，返回字符串表示应当按 PLAN_STALE 拒绝。
+        """
+        if self.tool != tool:
+            return f"确认令牌属于 {self.tool}，当前调用的是 {tool}"
+
+        expected_task = self.args.get("task_id")
+        if expected_task is not None:
+            actual_task = args.get("task_id")
+            if actual_task != expected_task:
+                return f"确认令牌绑定任务 {expected_task}，当前调用的是 {actual_task}"
+
+        expected_children = self.args.get("children")
+        if isinstance(expected_children, list):
+            actual_children = args.get("children")
+            if not isinstance(actual_children, list):
+                return "确认令牌绑定的是拆解子任务，当前调用缺少 children"
+            expected_sig = [
+                (child.get("title"), child.get("estimate_min"))
+                for child in expected_children
+                if isinstance(child, dict)
+            ]
+            actual_sig = [
+                (child.get("title"), child.get("estimate_min"))
+                for child in actual_children
+                if isinstance(child, dict)
+            ]
+            if expected_sig != actual_sig:
+                return "确认令牌绑定的子任务与当前调用不一致，请重新预览"
+
+        return None
+
 
 class ConfirmStore:
     """单次有效 + 5 分钟过期。

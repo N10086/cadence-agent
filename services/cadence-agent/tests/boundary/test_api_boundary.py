@@ -171,16 +171,7 @@ def test_confirm_decline_is_noop(client, runtime, core) -> None:
     assert "t_001" in core.tasks
 
 
-def test_confirm_missing_approve_defaults_to_execute_current_behavior(client, runtime, core) -> None:
-    """BUG-SP2-04：ConfirmRequest.approve 默认 True；省略 approve 会直接执行删除。"""
-    token = runtime.confirms.issue(tool="task.delete", args={"task_id": "t_001"}).token
-    r = client.post("/confirm", json={"confirmToken": token})
-    assert r.status_code == 200
-    assert "t_001" not in core.tasks
-
-
-@pytest.mark.xfail(strict=True, reason="BUG-SP2-04：approve 必须显式给出；省略时不能默认执行破坏性操作")
-def test_bug_confirm_requires_explicit_approve(client, runtime, core) -> None:
+def test_confirm_requires_explicit_approve(client, runtime, core) -> None:
     token = runtime.confirms.issue(tool="task.delete", args={"task_id": "t_001"}).token
     r = client.post("/confirm", json={"confirmToken": token})
     assert r.status_code in (400, 422)
@@ -194,30 +185,7 @@ def test_confirm_token_single_use_is_409(client, runtime, core) -> None:
     assert r.status_code == 409
 
 
-def test_confirm_split_dry_run_creates_nothing_current_behavior(client, runtime, core) -> None:
-    """BUG-SP2-03：用户确认拆解后，/confirm 用 dry_run=True 重放，结果什么都没创建。"""
-    runtime.llm.load([call(
-        "task.split",
-        children=[{"title": f"c{i}"} for i in range(4)],
-        parent_title="准备面试",
-    )])
-    r = client.post("/chat", json={"sessionId": "s_split", "message": "帮我拆成 4 步"})
-    events = read_events(client, r.json()["data"]["streamId"])
-    confirm = [e for e in events if e["event"] == "confirm"]
-    assert confirm, "影响 4 条，必须确认"
-    token = confirm[0]["data"]["confirmToken"]
-
-    before = set(core.tasks)
-    done = client.post("/confirm", json={"confirmToken": token, "approve": True})
-    assert done.status_code == 200
-    # 当前：applied=1（假的），但没有任何新任务
-    assert done.json()["data"]["applied"] == 1
-    assert set(core.tasks) == before
-
-
-@pytest.mark.xfail(strict=True, reason="BUG-SP2-03：确认拆解后应真正落库（dry_run=False），"
-                                       "而不是重放 dry_run=True 再返回成功")
-def test_bug_confirm_split_creates_children(client, runtime, core) -> None:
+def test_confirm_split_creates_children(client, runtime, core) -> None:
     runtime.llm.load([call(
         "task.split",
         children=[{"title": f"c{i}"} for i in range(4)],

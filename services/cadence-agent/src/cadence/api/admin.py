@@ -103,7 +103,13 @@ async def confirm(req: ConfirmRequest) -> JSONResponse:
     try:
         # ⚠️ 这里不重复做 id 白名单校验：参数在**签发令牌那一刻**已经校验过了，
         # 令牌里存的就是那一次的参数。令牌单次有效且 5 分钟过期，语义上等价于"那一刻的快照"。
-        parsed = validators.parse_args(pending.tool, tool.args_model, pending.args)
+        #
+        # split 的 dry_run=true 只是「预览」开关；用户已经点了确认，重放时必须真正落库，
+        # 否则前端显示“已执行”、实际一个子任务都没创建（S2-03）。
+        execution_args = dict(pending.args)
+        if pending.tool == "task.split":
+            execution_args["dry_run"] = False
+        parsed = validators.parse_args(pending.tool, tool.args_model, execution_args)
         data = await tool.handler(parsed, ctx)
     except ToolError as exc:
         trace.close(cost_yuan=0.0, total_ms=int((time.perf_counter() - started) * 1000))
@@ -118,20 +124,32 @@ async def confirm(req: ConfirmRequest) -> JSONResponse:
 
     ids: list[str] = []
     applied = 1
+    parent_id: str | None = None
     if isinstance(data, dict):
-        if isinstance(data.get("created"), list):
+        if pending.tool == "task.split" and isinstance(data.get("created"), list):
             ids = [str(t.get("id")) for t in data["created"] if isinstance(t, dict) and t.get("id")]
-            applied = len(ids) or 1
+            parent_id = data.get("parent_id")
+            # 父任务由 parent_title 就地新建时也是一次真实写入；args 里本来就有
+            # parent_id 时父任务已存在，不能重复计数。
+            parent_created = not execution_args.get("parent_id") and bool(execution_args.get("parent_title"))
+            applied = len(ids) + (1 if parent_created else 0)
         elif data.get("task_id"):
             ids = [str(data["task_id"])]
         elif isinstance(data.get("ids"), list):
+            # 非 split 工具保持 applied=1：这里的 ids 可能只是被影响对象的列表，
+            # 不代表「新建了几条」。
             ids = [str(x) for x in data["ids"]]
-            applied = len(ids)
 
-    return JSONResponse(
-        status_code=200,
-        content=ok({"applied": applied, "ids": ids, "tool": pending.tool, "traceId": trace_id}),
-    )
+    payload: dict[str, Any] = {
+        "applied": applied,
+        "ids": ids,
+        "tool": pending.tool,
+        "traceId": trace_id,
+    }
+    if pending.tool == "task.split":
+        payload["parentId"] = parent_id
+
+    return JSONResponse(status_code=200, content=ok(payload))
 
 
 # ---------------------------------------------------------------------------

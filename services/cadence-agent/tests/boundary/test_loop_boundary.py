@@ -144,27 +144,7 @@ async def test_delete_requires_confirm_and_does_not_delete_yet(runtime, core) ->
     assert out.of("confirm")
 
 
-async def test_confirm_token_can_execute_a_different_task_than_previewed(runtime, core) -> None:
-    """BUG-SP2-05：cf_ 令牌只绑定 tool 名，不绑定参数/版本。"""
-    token = runtime.confirms.issue(
-        tool="task.delete",
-        args={"task_id": "t_001"},
-        preview={"kind": "delete"},
-        versions={"t_001": 0},
-    ).token
-    out = await _run(
-        runtime,
-        [call("task.search", limit=10), call("task.delete", task_id="t_002", confirm_token=token)],
-        "确认删除",
-    )
-    # 当前实现会消费令牌并删除 t_002，尽管用户确认的是 t_001
-    assert "t_002" not in core.tasks
-    assert "t_001" in core.tasks
-
-
-@pytest.mark.xfail(strict=True, reason="BUG-SP2-05：确认令牌必须绑定 args（至少 task_id），"
-                                       "否则确认 A 可以删 B")
-async def test_bug_confirm_token_scope_is_bound_to_args(runtime, core) -> None:
+async def test_confirm_token_scope_is_bound_to_args(runtime, core) -> None:
     token = runtime.confirms.issue(tool="task.delete", args={"task_id": "t_001"}).token
     await _run(
         runtime,

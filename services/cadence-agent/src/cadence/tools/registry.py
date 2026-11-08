@@ -24,13 +24,27 @@ def provider_name(tool_name: str) -> str:
 
 
 def _strip_titles(node: Any) -> Any:
-    """递归删掉 pydantic 自动加的 "title"。
+    """递归删掉 pydantic 自动加的 schema 元数据 "title"。
 
     纯噪声：每字段一个 title，11 个工具加起来能占近三分之一 schema 体积，
     而模型从不读它。这是最便宜的省钱手段。
+
+    但 `properties` 是一个「字段名 → schema」的映射，它下面的 key 是字段名而不是
+    元数据。`task.create` / `task.split` 恰好有个字段就叫 `title`，按 key 名递归删除
+    会把 required 还在、properties 里的字段删掉，provider 收到自相矛盾的 schema。
+    所以这里只在非 properties 映射的位置删 title。
     """
     if isinstance(node, dict):
-        return {k: _strip_titles(v) for k, v in node.items() if k != "title"}
+        stripped: dict[str, Any] = {}
+        for key, value in node.items():
+            if key == "title":
+                continue
+            if key == "properties" and isinstance(value, dict):
+                # properties 的 key 是字段名，必须原样保留；只清理字段 schema 内部的元数据。
+                stripped[key] = {name: _strip_titles(schema) for name, schema in value.items()}
+            else:
+                stripped[key] = _strip_titles(value)
+        return stripped
     if isinstance(node, list):
         return [_strip_titles(v) for v in node]
     return node

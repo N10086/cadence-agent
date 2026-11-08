@@ -11,7 +11,7 @@ import json
 import pytest
 
 from cadence.guard.permissions import FORBIDDEN_TOOLS
-from cadence.tools.registry import _strip_titles, build_default_registry, provider_name, tool_schema
+from cadence.tools.registry import build_default_registry, provider_name, tool_schema
 
 
 @pytest.fixture
@@ -53,7 +53,6 @@ def test_forbidden_tools_never_registered(registry) -> None:
         assert all(t["function"]["name"] != provider_name(forbidden) for t in registry.openai_tools())
 
 
-@pytest.mark.xfail(strict=True, reason="BUG-SP2-01：_strip_titles 误删名为 title 的字段属性")
 def test_task_create_title_property_present(registry) -> None:
     """BUG-SP2-01：_strip_titles 会删掉所有叫 title 的键，包括真正的字段。"""
     params = schema(registry, "task.create")["function"]["parameters"]
@@ -63,13 +62,6 @@ def test_task_create_title_property_present(registry) -> None:
     )
 
 
-def test_bug_task_create_title_property_is_missing_but_required(registry) -> None:
-    params = schema(registry, "task.create")["function"]["parameters"]
-    assert "title" not in params.get("properties", {})
-    assert "title" in params.get("required", [])
-
-
-@pytest.mark.xfail(strict=True, reason="BUG-SP2-01：嵌套 ChildTask.title 同样被删")
 def test_task_split_child_title_property_present(registry) -> None:
     """BUG-SP2-01 的连带影响：嵌套 ChildTask 的 title 也被删。"""
     params = schema(registry, "task.split")["function"]["parameters"]
@@ -81,20 +73,6 @@ def test_non_title_fields_are_preserved(registry) -> None:
     params = schema(registry, "task.create")["function"]["parameters"]
     for field in ("description", "priority", "due_at", "estimate_min", "parent_id", "tags"):
         assert field in params.get("properties", {}), field
-
-
-def test_bug_strip_titles_removes_field_named_title() -> None:
-    """单元级复现：函数无法区分 pydantic 的 "title" 元数据和名为 title 的字段。"""
-    node = {
-        "properties": {
-            "title": {"title": "Title", "type": "string"},
-            "due_at": {"title": "Due At", "type": "string"},
-        },
-        "title": "TaskCreateArgs",
-    }
-    stripped = _strip_titles(node)
-    assert "title" not in stripped["properties"], "当前实现的错误行为：字段名 title 被当成元数据删掉"
-    assert "due_at" in stripped["properties"]
 
 
 def test_schema_is_json_serializable(registry) -> None:

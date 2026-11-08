@@ -60,7 +60,7 @@ class TaskCreateArgs(BaseModel):
 
 class TaskUpdateArgs(BaseModel):
     task_id: str = Field(..., description="任务 id，须来自本轮 task.search")
-    version: int = Field(..., ge=1, description="乐观锁版本号，须来自本轮 task.search，不要猜")
+    version: int = Field(..., ge=0, description="乐观锁版本号，须来自本轮 task.search，不要猜")
     patch: dict[str, Any] = Field(
         ...,
         description="只放要改的字段，可用键：title/description/priority/start_at/due_at/estimate_min/pinned/rrule/tags",
@@ -69,7 +69,7 @@ class TaskUpdateArgs(BaseModel):
 
 class TaskCompleteArgs(BaseModel):
     task_id: str = Field(..., description="任务 id，须来自本轮 task.search")
-    version: int = Field(..., ge=1, description="乐观锁版本号，须来自本轮 task.search")
+    version: int = Field(..., ge=0, description="乐观锁版本号，须来自本轮 task.search")
 
 
 class TaskDeleteArgs(BaseModel):

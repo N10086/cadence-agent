@@ -29,18 +29,9 @@ from cadence.tools.task_tools import (
 )
 
 
-@pytest.mark.xfail(strict=True, reason="BUG-SP2-02：Core 的新任务 version=0，但 schema 要求 version>=1")
 def test_version_zero_is_valid_for_update_and_complete() -> None:
     parse_args("task.update", TaskUpdateArgs, {"task_id": "t_001", "version": 0, "patch": {"title": "x"}})
     parse_args("task.complete", TaskCompleteArgs, {"task_id": "t_001", "version": 0})
-
-
-def test_current_version_zero_rejected_for_update() -> None:
-    """锁定 BUG-SP2-02 的当前行为：version 0 被参数校验拒绝。"""
-    with pytest.raises(ToolError) as ei:
-        parse_args("task.update", TaskUpdateArgs, {"task_id": "t_001", "version": 0, "patch": {"title": "x"}})
-    assert ei.value.code is ErrorCode.VALIDATION_ERROR
-    assert "version" in ei.value.message
 
 
 def test_version_one_is_accepted() -> None:

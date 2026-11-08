@@ -281,7 +281,11 @@ class Loop:
                 if permissions.needs_confirm(
                     call.name, affected=affected, batch_threshold=self.settings.destructive_batch_threshold
                 ):
-                    ok, pending_payload = await self._handle_confirm(call, tool, ctx, emit, affected)
+                    try:
+                        ok, pending_payload = await self._handle_confirm(call, tool, ctx, emit, affected)
+                    except ToolError as exc:
+                        # 令牌过期/版本变化/作用域不符：不执行目标工具，把 PLAN_STALE 作为本轮结果。
+                        return self._abort(ctx, started, outcome, exc.code, exc.message)
                     if not ok:
                         session.pending_confirm = pending_payload
                         return self._finish_outcome(ctx, started, confirm=pending_payload)
@@ -501,15 +505,38 @@ class Loop:
 
         if token:
             pending = ctx.confirms.peek(str(token))
-            if pending is not None and pending.tool == call.name:
-                ctx.confirms.take(str(token))
-                ctx.trace.add("GUARD", "guard.confirm_ok", detail={"tool": call.name, "token": str(token)[:12]})
-                return True, {}
+            if pending is not None:
+                # 先校验「用户确认的方案」和「模型现在要执行的调用」是不是同一件事。
+                # 不通过时抛 PLAN_STALE，绝不先 take（否则合法令牌会被白白烧掉）。
+                mismatch = pending.scope_mismatch(call.name, call.arguments)
+                if mismatch is not None:
+                    ctx.trace.add(
+                        "GUARD",
+                        "guard.confirm_stale",
+                        ok=False,
+                        detail={"tool": call.name, "token": str(token)[:12], "reason": mismatch},
+                    )
+                    raise ToolError(ErrorCode.PLAN_STALE, mismatch)
+
+                await self._assert_confirm_versions(pending, ctx, call.name)
+                consumed = ctx.confirms.take(str(token))
+                if consumed is not None:
+                    ctx.trace.add(
+                        "GUARD", "guard.confirm_ok",
+                        detail={"tool": call.name, "token": str(token)[:12]},
+                    )
+                    return True, {}
+
             ctx.trace.add("GUARD", "guard.confirm_invalid", ok=False,
                           detail={"tool": call.name, "token": str(token)[:12]})
-            # 令牌无效 → 需要重新确认
+            # 令牌无效/刚好过期 → 需要重新确认
+
         preview = await self._build_preview(call.name, call.arguments, ctx)
-        versions = {k: v for k, v in ctx.visible_versions.items()}
+        versions = {
+            task_id: ctx.visible_versions[task_id]
+            for task_id in _referenced_task_ids(call.arguments)
+            if task_id in ctx.visible_versions
+        }
         pending = ctx.confirms.issue(
             tool=call.name,
             args=dict(call.arguments),
@@ -526,6 +553,43 @@ class Loop:
         await emit(events.EVENT_CONFIRM, payload)
         ctx.trace.add("GUARD", "guard.confirm_required", detail={"tool": call.name, "affected": affected})
         return False, payload
+
+    async def _assert_confirm_versions(self, pending: Any, ctx: TurnContext, tool_name: str) -> None:
+        """确认前重新读一次任务版本，避免「预览后、确认前」被别的请求改掉（PLAN_STALE）。
+
+        `pending.versions` 只包含本次调用真正引用到的任务（见 `_referenced_task_ids`），
+        因此这里每个任务一次 GET 就够，不会因为无关任务变化把确认卡死。
+        """
+        if not pending.versions:
+            # TODO(L0-5): split 只给 children 时没有可校验的旧版本，先跳过；
+            # 新建子任务本身没有「旧版本被改」的语义，真正的并发保护仍由 Core 兜底。
+            ctx.trace.add(
+                "GUARD", "guard.confirm_versions_skipped",
+                detail={"tool": tool_name, "reason": "no versions in token"},
+            )
+            return
+
+        for task_id, expected in pending.versions.items():
+            try:
+                data = await ctx.core.request(
+                    "GET", f"/api/v1/tasks/{task_id}", trace_id=ctx.trace_id, tool_name=tool_name
+                )
+            except ToolError as exc:
+                if exc.code is ErrorCode.TASK_ID_NOT_FOUND:
+                    raise ToolError(
+                        ErrorCode.PLAN_STALE,
+                        f"确认令牌里的任务 {task_id} 已不存在，请重新发起操作",
+                    ) from exc
+                raise
+            task = (data or {}).get("task") or {}
+            current = task.get("version")
+            if current != expected:
+                raise ToolError(
+                    ErrorCode.PLAN_STALE,
+                    f"任务 {task_id} 已被修改（预览时 version={expected}，当前={current}），请重新预览后再确认",
+                )
+
+        ctx.trace.add("GUARD", "guard.confirm_versions_ok", detail={"tasks": list(pending.versions)})
 
     async def _build_preview(self, tool_name: str, args: dict[str, Any], ctx: TurnContext) -> dict[str, Any]:
         """给用户看的 diff / 快照。"""
@@ -712,6 +776,20 @@ def _map_llm_error(exc: LLMError) -> ToolError:
     if isinstance(exc, LLMBadRequest):
         return ToolError(ErrorCode.UPSTREAM_UNAVAILABLE, f"模型请求被拒绝：{exc}")
     return ToolError(ErrorCode.UPSTREAM_UNAVAILABLE, str(exc))
+
+
+def _referenced_task_ids(args: dict[str, Any]) -> list[str]:
+    """只收集本次确认真正引用到的已有任务 id。
+
+    令牌里的 versions 如果塞进全部 visible 任务，任何一个无关任务被改都会让确认
+    变成 PLAN_STALE；因此只绑 task_id / parent_id 这两个可能带版本的字段。
+    """
+    ids: list[str] = []
+    for key in ("task_id", "parent_id"):
+        value = args.get(key)
+        if isinstance(value, str) and value:
+            ids.append(value)
+    return ids
 
 
 def _affected_count(tool_name: str, parsed: Any) -> int:
