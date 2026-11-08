@@ -86,6 +86,8 @@ TOOLS: list[Tool] = [
         description=(
             "需要用户补充信息时调用。**一次只问一个问题** —— 问三个问题用户会烦，也无法评测。"
             "有歧义时优先问，不要猜。missing 填缺失的信息类别（如 title / date / task_id）。"
+            "用户要求取消任务时也用它：当前版本不支持取消，要在问题里明确说明，"
+            "并给出「标记完成」或「删除」的替代选项。"
         ),
         args_model=ClarifyArgs,
         handler=_clarify,

@@ -195,7 +195,10 @@ def test_confirm_split_creates_children(client, runtime, core) -> None:
     events = read_events(client, r.json()["data"]["streamId"])
     token = [e for e in events if e["event"] == "confirm"][0]["data"]["confirmToken"]
     before = set(core.tasks)
-    client.post("/confirm", json={"confirmToken": token, "approve": True})
+    done = client.post("/confirm", json={"confirmToken": token, "approve": True})
+    assert done.status_code == 200
+    assert done.json()["data"]["applied"] == 5  # 父 + 4 子，锁住 L0-3 的语义
+    assert done.json()["data"]["parentId"]
     assert len(set(core.tasks) - before) == 5  # 父 + 4 子
 
 

@@ -25,7 +25,6 @@ from cadence.tools.task_tools import (
     TaskSearchArgs,
     TaskSplitArgs,
     TaskUpdateArgs,
-    _patch_body,
 )
 
 
@@ -62,28 +61,50 @@ def test_invalid_enum_and_range_rejected() -> None:
         parse_args("task.search", TaskSearchArgs, {"limit": 21})
 
 
-def test_unknown_fields_are_silently_dropped() -> None:
-    """BUG-SP2-09：parse_args 的第二次校验会剥掉未知字段，而不是报错。"""
-    parsed = parse_args(
-        "task.create",
-        TaskCreateArgs,
-        {"title": "x", "due": "2026-11-10T09:00:00+08:00"},  # 拼错的 due
-    )
-    assert parsed.due_at is None
-    assert not hasattr(parsed, "due")
+def test_unknown_fields_are_rejected() -> None:
+    """L1-1：顶层未知字段必须返回 VALIDATION_ERROR，而不是被静默剥掉。"""
+    with pytest.raises(ToolError) as ei:
+        parse_args(
+            "task.create",
+            TaskCreateArgs,
+            {"title": "x", "due": "2026-11-10T09:00:00+08:00"},  # 拼错的 due
+        )
+    assert ei.value.code is ErrorCode.VALIDATION_ERROR
+    assert ei.value.details["unknown"] == ["due"]
+    assert "due" in ei.value.message
 
 
-@pytest.mark.xfail(strict=True, reason="BUG-SP2-09：拼错的字段名被静默丢弃，任务会以'没有截止时间'创建成功，"
-                                       "模型却以为设置成功了")
-def test_bug_typo_field_should_not_be_silently_dropped() -> None:
-    with pytest.raises(ToolError):
+def test_typo_field_returns_suggestion() -> None:
+    """拼错的字段名要给出最接近的合法字段（编辑距离 <=2 且同前缀）。"""
+    with pytest.raises(ToolError) as ei:
         parse_args("task.create", TaskCreateArgs, {"title": "x", "due": "2026-11-10T09:00:00+08:00"})
+    assert ei.value.suggestions == [{"field": "due_at", "reason": "字段 due 不存在"}]
+    assert "due_at" in ei.value.message
 
 
-def test_mixed_unknown_and_known_patch_silently_drops_unknown() -> None:
-    """BUG-SP2-10：patch 中未知键与合法键混在一起时，未知键静默消失，调用方收到成功。"""
-    body = _patch_body({"title": "new", "stauts": "DONE", "estimate": 60})
-    assert body == {"title": "new"}
+def test_mixed_unknown_patch_is_rejected() -> None:
+    """顶层已知参数（patch）与未知参数混在一起时，未知参数同样要拒绝。"""
+    with pytest.raises(ToolError) as ei:
+        parse_args(
+            "task.update",
+            TaskUpdateArgs,
+            {
+                "task_id": "t_001",
+                "version": 0,
+                "patch": {"title": "new"},
+                "stauts": "DONE",  # 顶层拼错，不是 patch 内部
+            },
+        )
+    assert ei.value.code is ErrorCode.VALIDATION_ERROR
+    assert ei.value.details["unknown"] == ["stauts"]
+
+    # patch 内部的键由 Core 校验：parse_args 不能因为里面出现 status 就拒掉
+    parsed = parse_args(
+        "task.update",
+        TaskUpdateArgs,
+        {"task_id": "t_001", "version": 0, "patch": {"due_at": "2026-11-10T09:00:00+08:00", "status": "CANCELLED"}},
+    )
+    assert parsed.patch["status"] == "CANCELLED"
 
 
 def test_collect_ids_recurses_and_only_uses_id_keys() -> None:

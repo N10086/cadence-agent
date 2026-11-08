@@ -83,8 +83,25 @@ def test_schema_is_json_serializable(registry) -> None:
 def test_delete_and_split_descriptions_contain_taboos(registry) -> None:
     delete = schema(registry, "task.delete")["function"]["description"]
     split = schema(registry, "task.split")["function"]["description"]
+    update = schema(registry, "task.update")["function"]["description"]
     assert "禁止" in delete and "确认" in delete
     assert "7" in split and "重新分解" in split
+    # L1-4：三个写操作都要有一句「不要做什么」
+    assert "禁忌" in delete and "禁忌" in split and "禁忌" in update
+    # L1-2：取消不支持已经写进 task.update 的描述
+    assert "status" in update and "meta.clarify" in update
+
+
+def test_every_required_field_is_declared(registry) -> None:
+    """L1-3：required 里的每个字段都必须出现在 properties 里，否则 provider 收到自相矛盾的 schema。"""
+    for t in registry.openai_tools():
+        params = t["function"]["parameters"]
+        required = set(params.get("required", []))
+        properties = set(params.get("properties", {}))
+        missing = required - properties
+        assert not missing, (
+            f"{t['function']['name']} 的 required 字段没有在 properties 里声明：{sorted(missing)}"
+        )
 
 
 def test_defaults_are_explicit(registry) -> None:

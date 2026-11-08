@@ -40,9 +40,12 @@ def test_missing_args_produces_clarify_suggestion() -> None:
     assert suggestions and suggestions[0]["tool"] == "meta.clarify"
 
 
-def test_unknown_keys_are_dropped() -> None:
-    parsed = validators.parse_args("demo", DemoArgs, {"task_id": "t_001", "version": 1, "oops": 1})
-    assert not hasattr(parsed, "oops")
+def test_unknown_keys_are_rejected() -> None:
+    """L1-1：未知的顶层参数必须报错，不能静默剥掉。"""
+    with pytest.raises(ToolError) as exc:
+        validators.parse_args("demo", DemoArgs, {"task_id": "t_001", "version": 1, "oops": 1})
+    assert exc.value.code is ErrorCode.VALIDATION_ERROR
+    assert "oops" in exc.value.details["unknown"]
 
 
 # ---------------------------------------------------------------------------

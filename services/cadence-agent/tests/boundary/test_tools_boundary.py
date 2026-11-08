@@ -130,16 +130,20 @@ async def test_update_maps_patch_and_returns_warnings(runtime, core) -> None:
     assert core.tasks["t_001"]["version"] == 2
 
 
-async def test_update_unknown_only_patch_raises(runtime, core) -> None:
+async def test_update_unknown_only_patch_warns_without_calling_core(runtime, core) -> None:
+    """patch 内部只有未知键：只给 warning + applied=false，不报 VALIDATION_ERROR、不打 Core。"""
     core.tasks["t_001"]["version"] = 1
     ctx = ctx_for(runtime)
     ctx.remember(core.tasks["t_001"])
-    with pytest.raises(ToolError) as ei:
-        await _update(TaskUpdateArgs(task_id="t_001", version=1, patch={"stauts": "DONE"}), ctx)
-    assert ei.value.code is ErrorCode.VALIDATION_ERROR
+    data = await _update(TaskUpdateArgs(task_id="t_001", version=1, patch={"stauts": "DONE"}), ctx)
+    assert data["applied"] is False
+    assert data["task"] is None
+    assert data["warnings"][0]["field"] == "stauts"
+    assert not [c for c in core.calls if c["method"] == "PATCH"]
 
 
-async def test_update_mixed_patch_silently_drops_unknown(runtime, core) -> None:
+async def test_update_mixed_patch_warns_but_applies_known(runtime, core) -> None:
+    """patch 内部的未知键不阻断（键由 Core 校验），但必须作为 warning 回给模型。"""
     core.tasks["t_001"]["version"] = 1
     ctx = ctx_for(runtime)
     ctx.remember(core.tasks["t_001"])
@@ -148,6 +152,22 @@ async def test_update_mixed_patch_silently_drops_unknown(runtime, core) -> None:
     ), ctx)
     assert data["task"]["title"] == "ok"
     assert core.tasks["t_001"]["status"] == "TODO"
+    warned = {w["field"] for w in data["warnings"]}
+    assert {"stauts", "estimate"}.issubset(warned)
+
+
+async def test_update_status_cancel_is_rejected_with_clarify(runtime, core) -> None:
+    """L1-2：Core 的 PATCH 不接受 status，取消必须走 meta.clarify 明确告知不支持。"""
+    core.tasks["t_001"]["version"] = 1
+    ctx = ctx_for(runtime)
+    ctx.remember(core.tasks["t_001"])
+    with pytest.raises(ToolError) as ei:
+        await _update(TaskUpdateArgs(task_id="t_001", version=1, patch={"status": "CANCELLED"}), ctx)
+    assert ei.value.code is ErrorCode.NOT_IMPLEMENTED
+    assert ei.value.suggestions[0]["tool"] == "meta.clarify"
+    assert "不支持取消" in ei.value.message
+    # 没有发出任何写请求
+    assert not [c for c in core.calls if c["method"] == "PATCH"]
 
 
 async def test_complete_passes_version_and_rejects_stale(runtime, core) -> None:

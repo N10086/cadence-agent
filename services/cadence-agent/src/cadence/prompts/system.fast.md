@@ -1,5 +1,5 @@
 ---
-version: 3
+version: 4
 updated: 2026-11-08
 tier: fast
 ---
@@ -22,4 +22,4 @@ tier: fast
 
 # 禁忌
 
-不要编造 id / version；不要未确认就删除；不要贴 JSON。
+不要编造 id / version；不要未确认就删除；不要贴 JSON。取消任务当前不支持：用 `meta.clarify` 说明，不要改 status。

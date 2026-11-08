@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Iterable
 
 from pydantic import BaseModel, ValidationError
 
@@ -21,25 +21,109 @@ ID_KEYS: frozenset[str] = frozenset(
 )
 
 
+def _levenshtein(a: str, b: str) -> int:
+    """标准编辑距离（插入/删除/替换各计 1）。"""
+    if a == b:
+        return 0
+    if not a:
+        return len(b)
+    if not b:
+        return len(a)
+
+    previous = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        current = [i]
+        for j, cb in enumerate(b, 1):
+            current.append(
+                min(
+                    previous[j] + 1,          # 删除
+                    current[j - 1] + 1,       # 插入
+                    previous[j - 1] + (ca != cb),  # 替换
+                )
+            )
+        previous = current
+    return previous[-1]
+
+
+def _common_prefix_len(a: str, b: str) -> int:
+    length = 0
+    for ca, cb in zip(a, b):
+        if ca != cb:
+            break
+        length += 1
+    return length
+
+
+def suggest_field(name: str, allowed: Iterable[str]) -> str | None:
+    """给拼错的字段名找一个最接近的合法字段。
+
+    判定是「编辑距离 <= 2 且同前缀」，但 `due -> due_at` 这种缩写的前缀
+    编辑距离是 3（补 `_at`）；它是用户最想要的那种建议，所以这里额外放行
+    「一方是另一方的前缀」的情况。没有任何同前缀候选时返回 None，不瞎猜。
+    """
+    key = name.strip().lower()
+    if not key:
+        return None
+
+    best: tuple[tuple[int, int, int], str] | None = None
+    for field in allowed:
+        candidate = field.lower()
+        prefix = _common_prefix_len(key, candidate)
+        if prefix < 2:
+            continue
+        distance = _levenshtein(key, candidate)
+        if distance > 2 and not (candidate.startswith(key) or key.startswith(candidate)):
+            continue
+        rank = (distance, -prefix, len(candidate))
+        if best is None or rank < best[0]:
+            best = (rank, field)
+    return best[1] if best else None
+
+
 def parse_args(tool_name: str, model_cls: type[BaseModel] | None, raw: dict[str, Any]) -> BaseModel:
     """按工具自己的 pydantic 模型校验。
 
     校验失败 = 失败矩阵 F2（工具参数缺失）：**不当作错误，当作歧义**。
     调用方（loop）会把它转成 `meta.clarify`，让模型去问用户，而不是硬猜。
+
+    **未知字段必须拒绝，不能静默丢弃**（L1-1）：模型把 `due_at` 写成 `due`
+    时，若静默丢弃，任务会以「没有截止时间」创建成功，模型却以为设置成功了。
+    这条直接决定 L4 的 `arg_acc` 是不是真数字。
+
+    只检查**顶层参数**：`task.update.patch` 是 `dict[str, Any]`，里面的键
+    由 Core 校验，不在这里拦——否则 `patch={"due_at": ...}` 会被误杀。
     """
     if model_cls is None:
         return BaseModel()
 
-    def _drop_unknown(data: dict[str, Any]) -> dict[str, Any]:
-        allowed = set(model_cls.model_fields.keys())
-        return {k: v for k, v in data.items() if k in allowed}
+    allowed = list(model_cls.model_fields)
+    unknown = [key for key in raw if key not in allowed]
+    if unknown:
+        suggestions: list[dict[str, Any]] = []
+        hints: list[str] = []
+        seen: set[str] = set()
+        for key in unknown:
+            match = suggest_field(key, allowed)
+            if match is None:
+                continue
+            if match not in seen:
+                seen.add(match)
+                suggestions.append({"field": match, "reason": f"字段 {key} 不存在"})
+            hints.append(f"{key} → {match}")
+
+        message = f"调用 {tool_name} 有无法识别的字段：{', '.join(unknown)}"
+        if hints:
+            message += "（是否想用 " + "、".join(hints) + "？）"
+        message += f"。可用字段：{', '.join(allowed)}"
+        raise ToolError(
+            ErrorCode.VALIDATION_ERROR,
+            message,
+            details={"tool": tool_name, "received": raw, "unknown": unknown, "allowed": allowed},
+            suggestions=suggestions,
+        )
 
     try:
-        try:
-            return model_cls.model_validate(raw)
-        except ValidationError:
-            # 模型多给字段是常事，先剥掉未知字段再试一次
-            return model_cls.model_validate(_drop_unknown(raw))
+        return model_cls.model_validate(raw)
     except ValidationError as exc:
         missing = [str(e["loc"][0]) for e in exc.errors() if e.get("type") == "missing"]
         invalid = [f"{'.'.join(str(x) for x in e['loc'])}: {e['msg']}" for e in exc.errors() if e.get("type") != "missing"]

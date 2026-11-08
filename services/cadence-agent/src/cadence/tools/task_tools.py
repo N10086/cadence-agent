@@ -63,7 +63,7 @@ class TaskUpdateArgs(BaseModel):
     version: int = Field(..., ge=0, description="乐观锁版本号，须来自本轮 task.search，不要猜")
     patch: dict[str, Any] = Field(
         ...,
-        description="只放要改的字段，可用键：title/description/priority/start_at/due_at/estimate_min/pinned/rrule/tags",
+        description="只放要改的字段，可用键：title/description/priority/start_at/due_at/estimate_min/pinned/rrule/tags；不含 status",
     )
 
 
@@ -157,6 +157,22 @@ def _patch_body(patch: dict[str, Any]) -> dict[str, Any]:
     return body
 
 
+def _unknown_patch_keys(patch: dict[str, Any]) -> list[str]:
+    """patch 内部不认识的键。
+
+    `patch` 是 `dict[str, Any]`，键的合法性由 Core 决定，guard 不做拦截；
+    但静默丢弃会让模型以为改成功了，所以这些键要作为 warning 回给模型。
+    """
+    return [key for key in patch if key not in _PATCH_KEYS]
+
+
+def _patch_warning(key: str) -> dict[str, str]:
+    return {
+        "field": key,
+        "reason": f"patch 中没有 {key} 这个字段，已忽略；可用字段：{', '.join(sorted(_PATCH_KEYS))}",
+    }
+
+
 # ---------------------------------------------------------------------------
 # handlers
 # ---------------------------------------------------------------------------
@@ -218,11 +234,37 @@ async def _create(args: TaskCreateArgs, ctx: TurnContext) -> dict[str, Any]:
 
 
 async def _update(args: TaskUpdateArgs, ctx: TurnContext) -> dict[str, Any]:
+    unknown = _unknown_patch_keys(args.patch)
+
+    # L1-2：curl 实测 Core 的 PATCH 对 status 返回 200 但静默忽略（version 不变），
+    # 所以取消**不能**由 task.update 承载。明确拒绝，并让模型走 meta.clarify 告知用户。
+    if any(str(key).lower() in {"status", "cancel", "cancelled"} for key in unknown):
+        raise ToolError(
+            ErrorCode.NOT_IMPLEMENTED,
+            "task.update 不支持取消任务：Core 的 PATCH 不接受 status（实测返回 200 但字段被忽略）。"
+            "请调用 meta.clarify 明确告知用户当前版本不支持取消，并建议改为完成或删除。",
+            suggestions=[
+                {
+                    "tool": "meta.clarify",
+                    "args": {"question": "当前版本还不支持取消任务，你希望我把它标记为完成，还是删除？"},
+                }
+            ],
+            details={"received": args.patch, "verified": "PATCH /api/v1/tasks/{id} ignores status"},
+        )
+
     body = _patch_body(args.patch)
     if not body:
+        if unknown:
+            # 只有未知键：不调用 Core，也不报错（键由 Core 校验；这里只提示没改）。
+            return {
+                "task": None,
+                "applied": False,
+                "warnings": [_patch_warning(key) for key in unknown],
+                "note": "patch 里没有可识别的字段，未调用 Core；请按可用字段重试。",
+            }
         raise ToolError(
             ErrorCode.VALIDATION_ERROR,
-            "patch 里没有可识别的字段，什么都不会改",
+            "patch 为空，什么都不会改",
             details={"received": args.patch, "allowed": sorted(_PATCH_KEYS)},
         )
     body["version"] = args.version
@@ -237,10 +279,13 @@ async def _update(args: TaskUpdateArgs, ctx: TurnContext) -> dict[str, Any]:
     task = (data or {}).get("task") or {}
     ctx.remember(task)
     ctx.note_action(f"修改任务「{task.get('title', args.task_id)}」")
-    warnings = (data or {}).get("warnings") or []
+    warnings = list((data or {}).get("warnings") or [])
+    # 未知 patch 键不阻断（键由 Core 校验），但必须让模型看见「没改」这件事。
+    for key in unknown:
+        warnings.append(_patch_warning(key))
     return {
         "task": _slim(task),
-        "warnings": warnings,  # 冲突只是提示，不是错误（FR-8）
+        "warnings": warnings,  # 冲突与未知键都只是提示，不是错误（FR-8）
     }
 
 
@@ -411,7 +456,9 @@ TOOLS: list[Tool] = [
             "局部更新一个任务，只传要改的字段。"
             "**必须提供 version**，它来自本轮 task.search 的返回；"
             "version 不对会被拒绝（409），这时要重新 search 而不是猜一个更大的数字。"
-            "**禁忌**：不要用它改 status，状态变化请用 task.complete。"
+            "**禁忌**：不要用它改 status 或取消任务 —— Core 的 PATCH 不接受 status"
+            "（会把该字段静默忽略）；用户要取消时请调用 meta.clarify 说明当前不支持，"
+            "并建议改为完成或删除。"
         ),
         args_model=TaskUpdateArgs,
         handler=_update,
@@ -433,6 +480,8 @@ TOOLS: list[Tool] = [
         description=(
             "删除一个任务（软删除，可恢复）。"
             "**禁止**在未确认的情况下调用。**禁止**批量删除。"
+            "**禁忌**：不要用它代替完成 —— 只想标记做完请用 task.complete；"
+            "删除只用于用户明确不要的任务。"
             "若用户说「清理一下」，必须先 task.search 列出候选，再逐个确认。"
             "首次调用不要传 confirm_token，系统会把令牌返回给用户确认。"
         ),
@@ -445,7 +494,8 @@ TOOLS: list[Tool] = [
         description=(
             "把一个任务拆成 2-7 个子任务。超过 7 条说明分解粒度太粗，应该重新分解。"
             "默认 dry_run=true 只返回预估，用户确认后才用 dry_run=false 真正创建。"
-            "**禁忌**：不要用它排期或改已有任务的时间。"
+            "**禁忌**：不要用它排期或改已有任务的时间；也不要把已存在的独立任务塞进"
+            "children 来「整理」，children 必须是这个父任务拆出的新子任务。"
         ),
         args_model=TaskSplitArgs,
         handler=_split,
