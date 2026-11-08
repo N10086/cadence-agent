@@ -16,6 +16,14 @@ from typing import Literal
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from .llm.timeouts import (
+    DEFAULT_CORE_CONNECT_TIMEOUT_S,
+    DEFAULT_CORE_READ_TIMEOUT_S,
+    DEFAULT_LLM_CONNECT_TIMEOUT_S,
+    DEFAULT_LLM_READ_TIMEOUT_S,
+    DEFAULT_TURN_TIMEOUT_S,
+)
+
 # src/cadence/config.py -> [0]=cadence [1]=src [2]=cadence-agent [3]=services [4]=<repo>
 _SERVICE_DIR = Path(__file__).resolve().parents[2]
 _REPO_DIR = Path(__file__).resolve().parents[4]
@@ -37,25 +45,36 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     # ---------- 下游 Core ----------
+    # L2-3 超时矩阵：connect 2s / read 3s。Core 是本机服务，3s 还没回就是出了问题，
+    # 不该在这里占着一轮 60s 的用户时间。
     core_base_url: str = "http://localhost:18080"
-    core_timeout_s: float = 5.0
-    core_connect_timeout_s: float = 2.0
-    core_retry_times: int = 3
+    core_timeout_s: float = DEFAULT_CORE_READ_TIMEOUT_S
+    core_connect_timeout_s: float = DEFAULT_CORE_CONNECT_TIMEOUT_S
+    core_retry_times: int = 2
     core_retry_backoff_s: float = 0.5  # 0.5 / 1 / 2
 
     # ---------- 模型 ----------
     # auto: 有 DEEPSEEK_API_KEY 就走 live，否则 fake
     llm_mode: Literal["auto", "fake", "live"] = "auto"
 
+    # L2-3 超时矩阵：connect 3s / read 15s。
+    # read 比 connect 宽得多：连接失败要快速失败，但长 prompt 的推理确实可能要十几秒。
+    llm_connect_timeout_s: float = DEFAULT_LLM_CONNECT_TIMEOUT_S
+    llm_read_timeout_s: float = DEFAULT_LLM_READ_TIMEOUT_S
+    #: 单轮总超时。它必须大于 LLM read 超时，否则还没到 read 超时就被整轮打断，
+    #: 降级链（L1→L2→L3）永远跑不完。
+    turn_timeout_s: float = DEFAULT_TURN_TIMEOUT_S
+
     zhipu_api_key: str = ""
     zhipu_base_url: str = "https://open.bigmodel.cn/api/paas/v4"
     zhipu_model: str = "glm-4-flash"
-    zhipu_timeout_s: float = 8.0
+    #: 单个 provider 的覆盖值；留空则用矩阵默认（connect=llm_connect_timeout_s / read=llm_read_timeout_s）
+    zhipu_timeout_s: float = 0.0
 
     deepseek_api_key: str = ""
     deepseek_base_url: str = "https://api.deepseek.com/v1"
     deepseek_model: str = "deepseek-chat"
-    deepseek_timeout_s: float = 20.0
+    deepseek_timeout_s: float = 0.0
 
     # 路由：只有一个 provider 时，仍然决定"用短提示还是长提示"，
     # 让 tier 出现在 trace 里供 SP4 统计；但不会产生跨 provider 的成本差异。
@@ -115,6 +134,16 @@ class Settings(BaseSettings):
         if self.llm_mode == "auto":
             return "live" if self.deepseek_api_key.strip() else "fake"
         return self.llm_mode  # type: ignore[return-value]
+
+    def llm_timeouts(self, provider: str = "deepseek") -> tuple[float, float]:
+        """返回 (connect, read)。provider 覆盖值为 0 时回落到矩阵默认。
+
+        超时只允许在这两个地方定义：矩阵默认与单项覆盖。禁止在客户端或 loop 里写死数字，
+        否则「确认版本那次 GET 用了 LLM 的 15s」这类串台会再次发生。
+        """
+        override = self.zhipu_timeout_s if provider == "zhipu" else self.deepseek_timeout_s
+        read = override if override and override > 0 else self.llm_read_timeout_s
+        return self.llm_connect_timeout_s, read
 
     @property
     def resolved_data_dir(self) -> Path:

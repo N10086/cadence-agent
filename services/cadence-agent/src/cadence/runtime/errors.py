@@ -37,6 +37,10 @@ class ErrorCode(str, Enum):
     ILLEGAL_TRANSITION = "ILLEGAL_TRANSITION"
     LOOP_DETECTED = "LOOP_DETECTED"
     NOT_IMPLEMENTED = "NOT_IMPLEMENTED"
+    # ---- L2 补的 1 个 ----
+    #: 单轮总超时（60s）。它不等于"模型读超时"：读超时是上游慢，这个是整轮（含规划+工具）
+    #: 太久，必须收尾并把已完成的动作交代清楚。
+    TURN_TIMEOUT = "TURN_TIMEOUT"
 
 
 #: 不可恢复 —— 出现即中止，不得重试
@@ -48,6 +52,7 @@ NON_RECOVERABLE: frozenset[ErrorCode] = frozenset(
         ErrorCode.ILLEGAL_TRANSITION,
         ErrorCode.LOOP_DETECTED,
         ErrorCode.NOT_IMPLEMENTED,
+        ErrorCode.TURN_TIMEOUT,
     }
 )
 
@@ -67,18 +72,25 @@ DEFAULT_HINT: dict[ErrorCode, str] = {
     ErrorCode.ILLEGAL_TRANSITION: "当前状态不允许这个操作。",
     ErrorCode.LOOP_DETECTED: "我似乎陷入了重复操作，先停下来汇报。",
     ErrorCode.NOT_IMPLEMENTED: "这个能力还没实现。",
+    ErrorCode.TURN_TIMEOUT: "这一轮超时了，我先汇报已经完成的部分。",
 }
 
 
 @dataclass
 class ToolError(Exception):
-    """工具层 / 护栏层的统一错误。直接可序列化成模型可读的 JSON。"""
+    """工具层 / 护栏层的统一错误。直接可序列化成模型可读的 JSON。
+
+    `core_down` 与 `code` 是正交的两件事：前者回答"Core 这个依赖是不是挂了"，
+    后者回答"这次调用错在哪"。L2 的 L3 降级必须看前者 —— 把"CORE 连接失败"
+    误判成"这个工具不支持"会让整轮对话给出错误结论。
+    """
 
     code: ErrorCode
     message: str
     suggestions: list[dict[str, Any]] = field(default_factory=list)
     details: dict[str, Any] | None = None
     recoverable: bool | None = None
+    core_down: bool = False
 
     def __post_init__(self) -> None:
         Exception.__init__(self, f"{self.code.value}: {self.message}")
@@ -98,6 +110,8 @@ class ToolError(Exception):
         }
         if self.details:
             payload["error"]["details"] = self.details
+        if self.core_down:
+            payload["error"]["io"] = "core"
         return payload
 
     def to_tool_json(self) -> dict[str, Any]:

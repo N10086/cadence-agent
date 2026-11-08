@@ -100,6 +100,11 @@ class Breaker:
         self._maybe_half_open()
         return self._state
 
+    @property
+    def cooldown_current(self) -> float:
+        """下一次 OPEN 会用的冷却时长（只读，测试与 /health 用来看退避到哪一档了）。"""
+        return min(self.cooldown_s * (2 ** max(0, self.open_count - 1)), self.cooldown_max_s)
+
     def _maybe_half_open(self) -> None:
         if self._state == OPEN and self._clock() - self._opened_at >= self._cooldown:
             self._state = HALF_OPEN
@@ -127,15 +132,25 @@ class Breaker:
         return sum(1 for r in self._results if not r) / len(self._results)
 
     def _open(self) -> None:
+        """打开熔断。**首次冷却就是 cooldown_s（30s），不是 60s。**
+
+        退避档位由 open_count 的序号决定：第 1 次 OPEN = 30s、第 2 次 = 60s、
+        第 3 次 = 120s …… 封顶 300s。`_reset()` 把 open_count 清零，所以一次成功
+        探测之后的下一轮故障又从 30s 重新开始退避。
+
+        旧实现是在 `_open()` 里直接 `cooldown *= 2`，导致**第一次打开就等 60s**：
+        provider 只是抖了一下，用户却要等一分钟。契约（L2-1）明确要求先 30s。
+        """
         self._state = OPEN
         self._opened_at = self._clock()
         self.open_count += 1
-        self._cooldown = min(self._cooldown * 2, self.cooldown_max_s)
+        self._cooldown = self.cooldown_current
 
     def _reset(self) -> None:
         self._state = CLOSED
         self._results.clear()
         self._cooldown = self.cooldown_s
+        self.open_count = 0
 
     def guard(self) -> None:
         if not self.allow():
@@ -155,12 +170,16 @@ async def call_with_resilience(
     base_delay: float = 0.5,
     sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
 ) -> T:
-    """先查熔断，再重试，每次结果回写熔断器。"""
+    """先查熔断，再重试，每次结果回写熔断器。
 
-    if breaker is not None:
-        breaker.guard()
+    `guard()` 放在 `once()` **内部**：重试过程中熔断器可能因为前面几次失败刚打开，
+    这时必须立刻停手。只在外层查一次的话，后面的重试仍会打 provider ——
+    那正是「OPEN 期间不打 provider」要禁止的事。
+    """
 
     async def once() -> T:
+        if breaker is not None:
+            breaker.guard()
         try:
             result = await fn()
         except LLMError as exc:
@@ -178,8 +197,10 @@ async def call_with_resilience(
     def _should_retry(exc: Exception) -> bool:
         if isinstance(exc, LLMBreakerOpen):
             return False
+        # 429 不再是"重试"的理由：provider 已经明确说别打了，重试只会更糟，
+        # 而且会把一次限流放大成 N 次计费。429 交给上行做降级（L2-2）。
         if isinstance(exc, LLMRateLimited):
-            return True
+            return False
         return getattr(exc, "retryable", False)
 
     return await retry_async(once, times=times, base_delay=base_delay, should_retry=_should_retry, sleep=sleep)

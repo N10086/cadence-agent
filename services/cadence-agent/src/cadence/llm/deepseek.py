@@ -24,6 +24,7 @@ from .base import (
     LLMUnavailable,
     ToolCall,
 )
+from .timeouts import DEFAULT_LLM_CONNECT_TIMEOUT_S, DEFAULT_LLM_READ_TIMEOUT_S
 
 
 class OpenAICompatibleClient:
@@ -35,8 +36,8 @@ class OpenAICompatibleClient:
         api_key: str,
         base_url: str,
         model: str,
-        timeout_s: float = 20.0,
-        connect_timeout_s: float = 5.0,
+        timeout_s: float = DEFAULT_LLM_READ_TIMEOUT_S,
+        connect_timeout_s: float = DEFAULT_LLM_CONNECT_TIMEOUT_S,
         http: httpx.AsyncClient | None = None,
     ) -> None:
         self.api_key = api_key
@@ -294,21 +295,24 @@ class DeepSeekClient(OpenAICompatibleClient):
         api_key: str,
         base_url: str,
         model: str,
-        timeout_s: float = 20.0,
+        timeout_s: float = DEFAULT_LLM_READ_TIMEOUT_S,
+        connect_timeout_s: float = DEFAULT_LLM_CONNECT_TIMEOUT_S,
         http: httpx.AsyncClient | None = None,
     ) -> None:
+        # 默认值来自 llm/timeouts.py（唯一来源）；生产装配由 config.llm_timeouts() 传入，
+        # 这样"矩阵"和"客户端"不会各写一份数字然后漂移。
         super().__init__(
             api_key=api_key,
             base_url=base_url,
             model=model,
             timeout_s=timeout_s,
-            connect_timeout_s=5.0,
+            connect_timeout_s=connect_timeout_s,
             http=http,
         )
 
 
 class ZhipuClient(OpenAICompatibleClient):
-    """GLM-4-Flash：不支持 reasoning_content，超时更短（8s），规划质量差。"""
+    """GLM-4-Flash：不支持 reasoning_content，规划质量差。超时同样走矩阵。"""
 
     name = "zhipu"
 
@@ -318,7 +322,8 @@ class ZhipuClient(OpenAICompatibleClient):
         api_key: str,
         base_url: str,
         model: str,
-        timeout_s: float = 8.0,
+        timeout_s: float = DEFAULT_LLM_READ_TIMEOUT_S,
+        connect_timeout_s: float = DEFAULT_LLM_CONNECT_TIMEOUT_S,
         http: httpx.AsyncClient | None = None,
     ) -> None:
         super().__init__(
@@ -326,6 +331,6 @@ class ZhipuClient(OpenAICompatibleClient):
             base_url=base_url,
             model=model,
             timeout_s=timeout_s,
-            connect_timeout_s=3.0,
+            connect_timeout_s=connect_timeout_s,
             http=http,
         )

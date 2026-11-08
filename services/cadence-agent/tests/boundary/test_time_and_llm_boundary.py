@@ -318,27 +318,61 @@ def test_breaker_opens_after_four_failures() -> None:
     assert b.state == OPEN
 
 
-def test_breaker_first_open_cooldown_is_doubled_current_behavior() -> None:
-    """BUG-SP2-25：首次打开就把 30s 翻倍成 60s，与 PRD 的'冷却 30s，探测失败再翻倍'不一致。"""
+def test_breaker_first_open_cooldown_is_30s() -> None:
+    """L2-1：首次打开就是 30s。旧实现首次即翻倍成 60s（BUG-SP2-25）。"""
     clock = [0.0]
     b = Breaker("t", failure_threshold=0.5, window=20, cooldown_s=30, clock=lambda: clock[0])
     for _ in range(4):
         b.record(False)
     assert b.state == OPEN
+    clock[0] = 29.9
+    assert b.state == OPEN  # 冷却未满，仍然不打 provider
     clock[0] = 30.0
-    assert b.state == OPEN  # 当前要等 60s
-    clock[0] = 60.0
     assert b.state == HALF_OPEN
 
 
-@pytest.mark.xfail(strict=True, reason="BUG-SP2-25：首次打开的冷却应是 30s")
-def test_bug_breaker_first_cooldown_is_30s() -> None:
+def test_breaker_state_machine_uses_injected_clock() -> None:
+    """CLOSED → OPEN → HALF_OPEN →（探测成功）CLOSED，全程注入时钟，不 sleep。
+
+    这是 L2-1 的核心验收：状态机必须能用假时钟走完，否则要么真的睡 30s，
+    要么测试只能断言"打开过"，覆盖不到半开窗口和恢复路径。
+    """
     clock = [0.0]
-    b = Breaker("t", failure_threshold=0.5, window=20, cooldown_s=30, clock=lambda: clock[0])
+    b = Breaker("t", failure_threshold=0.5, window=4, cooldown_s=30, clock=lambda: clock[0])
+    assert b.state == CLOSED
+
     for _ in range(4):
         b.record(False)
+    assert b.state == OPEN
+    assert b.allow() is False
+
     clock[0] = 30.0
     assert b.state == HALF_OPEN
+    assert b.allow() is True
+
+    b.record(True)  # 探测成功
+    assert b.state == CLOSED
+    assert b.open_count == 0
+
+
+def test_breaker_cooldown_backs_off_after_first_open() -> None:
+    """首次 30s，之后才 ×2：60 → 120 → 240 → 300（封顶）。"""
+    clock = [0.0]
+    b = Breaker("t", failure_threshold=0.5, window=4, cooldown_s=30, cooldown_max_s=300,
+                clock=lambda: clock[0])
+
+    seen: list[float] = []
+    for _ in range(5):
+        for _ in range(4):
+            b.record(False)
+        assert b.state == OPEN
+        seen.append(b.cooldown_current)
+        # 时钟以"本次打开时刻"为基准推进：不能累加 now，否则后面的档位永远走不到。
+        clock[0] += b.cooldown_current + 0.1
+        assert b.state == HALF_OPEN
+        b.record(False)  # 探测失败 → 再次打开，进入下一档
+
+    assert seen == [30.0, 60.0, 120.0, 240.0, 300.0]
 
 
 def test_breaker_half_open_success_resets() -> None:
@@ -346,7 +380,7 @@ def test_breaker_half_open_success_resets() -> None:
     b = Breaker("t", failure_threshold=0.5, window=20, cooldown_s=30, clock=lambda: clock[0])
     for _ in range(4):
         b.record(False)
-    clock[0] = 60.0
+    clock[0] = 30.0
     assert b.state == HALF_OPEN
     b.record(True)
     assert b.state == CLOSED

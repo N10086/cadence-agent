@@ -38,12 +38,20 @@ class CoreClient:
         if self._http is None:
             self._http = httpx.AsyncClient(
                 base_url=self.settings.core_base_url.rstrip("/"),
-                timeout=httpx.Timeout(
-                    self.settings.core_timeout_s,
-                    connect=self.settings.core_connect_timeout_s,
-                ),
+                timeout=self._timeout(),
             )
         return self._http
+
+    def _timeout(self) -> httpx.Timeout:
+        """Core 的超时矩阵：connect 2s / read 3s（见 `Settings`，本文件不许写死数字）。
+
+        确认流程里 `_assert_confirm_versions` 那次 GET 也走这里 —— 它是一次 Core 读，
+        不是一次模型调用，绝不能借用 LLM 的 15s read 超时。
+        """
+        return httpx.Timeout(
+            self.settings.core_timeout_s,
+            connect=self.settings.core_connect_timeout_s,
+        )
 
     async def aclose(self) -> None:
         if self._owns_http and self._http is not None:
@@ -74,23 +82,32 @@ class CoreClient:
             headers["X-Idempotency-Key"] = idempotency_key
 
         clean_params = {k: v for k, v in (params or {}).items() if v is not None}
+        timeout = self._timeout()
 
         last_exc: Exception | None = None
         for attempt in range(self.settings.core_retry_times + 1):
             try:
                 self.call_count += 1
                 resp = await self._client().request(
-                    method, path, params=clean_params or None, json=body, headers=headers
+                    method,
+                    path,
+                    params=clean_params or None,
+                    json=body,
+                    headers=headers,
+                    # 逐请求再显式传一次：注入的 http client（测试/连接池）不会带我们的矩阵
+                    timeout=timeout,
                 )
             except httpx.TimeoutException as exc:
                 last_exc = ToolError(
                     code=ErrorCode.UPSTREAM_UNAVAILABLE,
                     message=f"Core 请求超时（{method} {path}）: {exc}",
+                    core_down=True,
                 )
             except httpx.HTTPError as exc:
                 last_exc = ToolError(
                     code=ErrorCode.UPSTREAM_UNAVAILABLE,
                     message=f"Core 连接失败（{method} {path}）: {exc}",
+                    core_down=True,
                 )
             else:
                 # 5xx 才重试；4xx 是调用方的错，重试只会重复犯错
@@ -98,6 +115,7 @@ class CoreClient:
                     last_exc = ToolError(
                         code=ErrorCode.UPSTREAM_UNAVAILABLE,
                         message=f"Core 返回 {resp.status_code}（{method} {path}）",
+                        core_down=True,
                     )
                 else:
                     return self._translate(resp, tool_name)
@@ -173,7 +191,11 @@ class CoreClient:
             raise ToolError(ErrorCode.RATE_LIMITED, message or "请求过于频繁")
 
         if status >= 500:
-            raise ToolError(ErrorCode.UPSTREAM_UNAVAILABLE, message or f"Core 服务异常（{status}）")
+            raise ToolError(
+                ErrorCode.UPSTREAM_UNAVAILABLE,
+                message or f"Core 服务异常（{status}）",
+                core_down=True,
+            )
 
         raise ToolError(ErrorCode.UPSTREAM_UNAVAILABLE, f"未预期的状态 {status}: {message}")
 

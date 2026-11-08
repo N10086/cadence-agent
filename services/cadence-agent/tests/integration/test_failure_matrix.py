@@ -210,11 +210,22 @@ async def test_f8_context_over_budget_triggers_compression(runtime, core) -> Non
 
 
 async def test_f9_timeout_retries_then_degrades(runtime, core) -> None:
-    script = [fail(LLMTimeout("上游超时")), fail(LLMTimeout("上游超时")), say("降级模式下的回答")]
+    """F9 + L2：reason 超时 → L1 换 fast（也超时）→ L2 单步（也超时）→ L3。
+
+    L2 之后"重试"已经不再兜底：三层都失败就必须诚实报 UPSTREAM_UNAVAILABLE，
+    而不是编一句话装作成功（L2-2 的 L3 判定）。
+    """
+    script = [
+        fail(LLMTimeout("上游超时")),
+        fail(LLMTimeout("上游超时")),
+        fail(LLMTimeout("上游超时")),
+    ]
     result = await run_script(runtime, script, "帮我准备面试", tier="reason")
 
     assert result.outcome.degraded is True
-    assert result.outcome.degrade_reason.startswith("reason_model_unavailable")
+    assert result.outcome.degrade_reason.startswith("single_step_fallback")
+    assert result.outcome.error is not None
+    assert result.outcome.error.code is ErrorCode.UPSTREAM_UNAVAILABLE
     assert any(d.get("degraded") for d in result.of("error"))
 
 

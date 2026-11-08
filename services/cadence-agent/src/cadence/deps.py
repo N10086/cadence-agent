@@ -58,6 +58,9 @@ class Runtime:
             settings=settings,
             registry=self.registry,
             llm=self.llm,
+            # 单 provider（ASSUMED D4）：L1 降级复用同一个 client，只换 fast 提示。
+            # 装配层可以在这里换成真正的快模型，Loop 无需改动。
+            fast_llm=getattr(self.llm, "fast_llm", None) or self.llm,
             breaker=self.breaker,
         )
         self._background: set[asyncio.Task[Any]] = set()
@@ -114,11 +117,13 @@ def build_llm(settings: Settings) -> LLMClient:
             ErrorCode.UPSTREAM_UNAVAILABLE,
             "LLM_MODE=live 但没有配置 DEEPSEEK_API_KEY",
         )
+    connect_s, read_s = settings.llm_timeouts("deepseek")
     return DeepSeekClient(
         api_key=settings.deepseek_api_key,
         base_url=settings.deepseek_base_url,
         model=settings.deepseek_model,
-        timeout_s=settings.deepseek_timeout_s,
+        timeout_s=read_s,
+        connect_timeout_s=connect_s,
     )
 
 
