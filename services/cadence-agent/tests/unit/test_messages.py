@@ -63,6 +63,39 @@ def test_redact_protocol_text_strips_codes_from_model_paraphrase() -> None:
     assert "取消" in clean
 
 
+def test_redact_keeps_bare_business_numbers() -> None:
+    """只抹协议上下文：用户话里的 503 是业务内容，不能当协议码吃掉。"""
+    assert "503" in redact_protocol_text("建个任务：排查 503 报错")
+    assert "501" in redact_protocol_text("帮我看下阶段 501 的里程碑")
+
+
+def test_redact_removes_bare_code_only_in_parentheses() -> None:
+    assert "501" not in redact_protocol_text("NOT_IMPLEMENTED (501)")
+    assert "503" not in redact_protocol_text("上游返回（503）")
+    assert "503" not in redact_protocol_text("上游返回 (503)")
+
+
+def test_redact_removes_status_code_with_protocol_prefix() -> None:
+    for raw in (
+        "HTTP 503",
+        "状态码 503",
+        "错误码 501",
+        "code=503",
+        "code: 501",
+        "HTTP（503）",
+    ):
+        cleaned = redact_protocol_text(raw)
+        assert "501" not in cleaned and "503" not in cleaned, (raw, cleaned)
+        assert cleaned == "" or cleaned.strip() == ""
+
+
+def test_redact_protocol_names_become_human_words() -> None:
+    assert redact_protocol_text("NOT_IMPLEMENTED") == "暂不支持"
+    assert redact_protocol_text("UPSTREAM_UNAVAILABLE") == "上游不可用"
+    # 词内匹配（例如别的英文单词里含这两个词）不该被误伤
+    assert redact_protocol_text("XNOT_IMPLEMENTEDX") == "XNOT_IMPLEMENTEDX"
+
+
 def test_humanize_event_keeps_code_but_swaps_message() -> None:
     err = ToolError(ErrorCode.NOT_IMPLEMENTED, RAW_501)
     event = humanize_event(err)

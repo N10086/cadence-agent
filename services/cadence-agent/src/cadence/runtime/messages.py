@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from .errors import ErrorCode, ToolError
@@ -99,24 +100,34 @@ def humanize_event(error: ToolError) -> dict[str, Any]:
     }
 
 
-#: 用户可见文本里不该出现的协议痕迹。501 是 Core 的实现细节，不是用户语言。
-_PROTOCOL_TRACES = (
-    ("NOT_IMPLEMENTED", "暂不支持"),
-    ("(501)", ""),
-    ("501", ""),
-    ("UPSTREAM_UNAVAILABLE", "上游不可用"),
-    ("(503)", ""),
-    ("503", ""),
+#: 用户可见文本里不该出现的协议痕迹：只抹**协议上下文**，不抹裸数字。
+#:
+#: 旧实现是 `str.replace("503", "")`，它会把用户的正常内容一起吃掉：
+#: 「建个任务：排查 503 报错」→「建个任务：排查  报错」。
+#: 数字本身可能是用户业务数据（端口、错误码、体积），只有跟着协议说法的才该抹。
+_PROTOCOL_NAME = re.compile(r"\bNOT_IMPLEMENTED\b")
+_UPSTREAM_NAME = re.compile(r"\bUPSTREAM_UNAVAILABLE\b")
+_HTTP_CODE_WITH_PREFIX = re.compile(
+    r"(?:HTTP\s*|状态码\s*|错误码\s*|code\s*[=:]\s*)[（(]?\s*(501|503)\s*[)）]?"
 )
+_BARE_PAREN_CODE = re.compile(r"[（(]\s*(501|503)\s*[)）]")
 
 
 def redact_protocol_text(text: str) -> str:
-    """把"协议码"从**用户可见**文本里抹掉。
+    """把"协议码"从**用户可见**文本里抹掉，但保留业务语义里的裸数字。
 
-    模型在 clarify 里经常原样复述工具错误（"NOT_IMPLEMENTED：取消当前版本不支持"）。
+    模型在 clarify 里经常原样复述工具错误（"NOT_IMPLEMENTED (501)：取消当前版本不支持"）。
     码本身必须留在 trace/评测里，但用户那句话不能长这样。
+
+    只处理四类协议形态（与 L2-4 的验收口径一致）：
+      - 协议名：`NOT_IMPLEMENTED` / `UPSTREAM_UNAVAILABLE` → 人话
+      - 带前缀的状态码：`HTTP 503` / `状态码 503` / `错误码 501` / `code=503`
+      - 括号里的状态码：`(501)` / `（503）`
+      - **不处理**裸 `503`：「排查 503 报错」里的 503 是用户的业务内容。
     """
     out = text or ""
-    for needle, replacement in _PROTOCOL_TRACES:
-        out = out.replace(needle, replacement)
+    out = _PROTOCOL_NAME.sub("暂不支持", out)
+    out = _UPSTREAM_NAME.sub("上游不可用", out)
+    out = _HTTP_CODE_WITH_PREFIX.sub("", out)
+    out = _BARE_PAREN_CODE.sub("", out)
     return out.strip()
