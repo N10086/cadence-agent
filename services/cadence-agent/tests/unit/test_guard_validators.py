@@ -25,6 +25,16 @@ def test_parse_ok() -> None:
     assert parsed.task_id == "t_001"
 
 
+def test_alias_field_is_not_rejected_as_unknown() -> None:
+    """L4 发现：schema 按 alias 暴露（schedule.busy 的 `from`），校验不能只认内部字段名。"""
+
+    class AliasArgs(BaseModel):
+        from_: str = Field(..., alias="from")
+
+    parsed = validators.parse_args("alias", AliasArgs, {"from": "2026-11-11T12:00:00+08:00"})
+    assert parsed.from_ == "2026-11-11T12:00:00+08:00"
+
+
 def test_missing_required_raises_validation_error() -> None:
     with pytest.raises(ToolError) as exc:
         validators.parse_args("demo", DemoArgs, {"task_id": "t_001"})

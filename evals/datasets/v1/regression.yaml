@@ -1,0 +1,177 @@
+# F 组 · 边界与错误恢复（5 条）。
+
+- &fseed
+  id: F1
+  group: regression
+  input: "建一个没有名字的任务。"
+  setup: &fseed_setup
+    tasks:
+      - alias: 牛奶
+        title: 买牛奶
+        status: TODO
+        priority: NORMAL
+        due_at: null
+        tags: ["生活"]
+      - alias: 周报
+        title: 写周报
+        status: TODO
+        priority: HIGH
+        due_at: "2026-11-13T18:00:00+08:00"
+        tags: ["work"]
+      - alias: 演示
+        title: 客户演示
+        status: TODO
+        priority: URGENT
+        due_at: "2026-11-11T14:00:00+08:00"
+        tags: ["work"]
+      - alias: 论文
+        title: 读论文
+        status: DOING
+        priority: NORMAL
+        due_at: null
+        tags: ["学习"]
+      - alias: 房租
+        title: 交房租
+        status: TODO
+        priority: NORMAL
+        due_at: "2026-11-30T23:59:00+08:00"
+        tags: ["生活"]
+      - alias: 健身
+        title: 健身
+        status: TODO
+        priority: LOW
+        due_at: null
+        tags: ["健康"]
+      - alias: 修bug
+        title: "修 bug #42"
+        status: TODO
+        priority: HIGH
+        due_at: "2026-11-12T18:00:00+08:00"
+        tags: ["work"]
+        depends_on: "$论文"
+      - alias: 旧事
+        title: 旧任务
+        status: CANCELLED
+        priority: LOW
+        due_at: null
+        tags: []
+  expect:
+    tool_calls:
+      - name: meta.clarify
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.create
+  tags: ["F", "boundary", "clarify"]
+
+- id: F2
+  group: regression
+  input: "新建一个任务，标题是：这是一个非常长的任务标题，长到本地校验必须先把它拦下来，而不是原样发给 Core 换一个 400 或 500。这是一个非常长的任务标题，长到本地校验必须先把它拦下来，而不是原样发给 Core 换一个 400 或 500。这是一个非常长的任务标题，长到本地校验必须先把它拦下来，而不是原样发给 Core 换一个 400 或 500。这是一个非常长的任务标题，长到本地校验必须先把它拦下来，而不是原样发给 Core 换一个 400 或 500。这是一个非常长的任务标题，长到本地校验必须先把它拦下来，而不是原样发给 Core 换一个 400 或 500。这是一个非常长的任务标题，长到本地校验必须先把它拦下来，而不是原样发给 Core 换一个 400 或 500。"
+  setup: *fseed_setup
+  expect:
+    tool_calls:
+      - name: meta.clarify
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.split
+  tags: ["F", "boundary", "long-title"]
+
+- id: F3
+  group: regression
+  input: "买牛奶改到 2 月 30 号。"
+  setup: *fseed_setup
+  expect:
+    tool_calls:
+      - name: meta.clarify
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.update
+  tags: ["F", "boundary", "clarify", "date"]
+
+- id: F4
+  group: regression
+  input: "再把买牛奶完成一次。"
+  setup: &fseed_done_setup
+    tasks:
+      - alias: 牛奶
+        title: 买牛奶
+        status: DONE
+        priority: NORMAL
+        due_at: null
+        tags: ["生活"]
+      - alias: 周报
+        title: 写周报
+        status: TODO
+        priority: HIGH
+        due_at: "2026-11-13T18:00:00+08:00"
+        tags: ["work"]
+      - alias: 演示
+        title: 客户演示
+        status: TODO
+        priority: URGENT
+        due_at: "2026-11-11T14:00:00+08:00"
+        tags: ["work"]
+      - alias: 论文
+        title: 读论文
+        status: DOING
+        priority: NORMAL
+        due_at: null
+        tags: ["学习"]
+      - alias: 房租
+        title: 交房租
+        status: TODO
+        priority: NORMAL
+        due_at: "2026-11-30T23:59:00+08:00"
+        tags: ["生活"]
+      - alias: 健身
+        title: 健身
+        status: TODO
+        priority: LOW
+        due_at: null
+        tags: ["健康"]
+      - alias: 修bug
+        title: "修 bug #42"
+        status: TODO
+        priority: HIGH
+        due_at: "2026-11-12T18:00:00+08:00"
+        tags: ["work"]
+        depends_on: "$论文"
+      - alias: 旧事
+        title: 旧任务
+        status: CANCELLED
+        priority: LOW
+        due_at: null
+        tags: []
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          keyword: "牛奶"
+      - name: task.complete
+        args:
+          task_id: "$牛奶"
+          version: "$version.牛奶"
+    final_state:
+      count_delta: 0
+      tasks:
+        - id: "$牛奶"
+          status: DONE
+          version_delta: 0
+    must_not_call:
+      - task.create
+  tags: ["F", "boundary", "action", "idempotent"]
+
+- id: F5
+  group: regression
+  input: "给我建 20 个任务，一天一个。"
+  setup: *fseed_setup
+  expect:
+    tool_calls:
+      - name: meta.clarify
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.create
+  tags: ["F", "boundary", "clarify"]

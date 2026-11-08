@@ -1,0 +1,8 @@
+name: B1
+title: + 工具契约
+features:
+  tool_contract: true
+  guard_id_whitelist: false
+  guard_confirm: false
+  clarify_enabled: false
+  model_routing: false

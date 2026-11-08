@@ -1,0 +1,133 @@
+# D 组 · 歧义澄清（5 条）。必须问，不许猜。
+
+- &dseed
+  id: D1
+  group: ambiguous
+  input: "把那个报告搞一下。"
+  setup: &dseed_setup
+    tasks:
+      - alias: 牛奶
+        title: 买牛奶
+        status: TODO
+        priority: NORMAL
+        due_at: null
+        tags: ["生活"]
+      - alias: 周报
+        title: 写周报
+        status: TODO
+        priority: HIGH
+        due_at: "2026-11-13T18:00:00+08:00"
+        tags: ["work"]
+      - alias: 演示
+        title: 客户演示
+        status: TODO
+        priority: URGENT
+        due_at: "2026-11-11T14:00:00+08:00"
+        tags: ["work"]
+      - alias: 论文
+        title: 读论文
+        status: DOING
+        priority: NORMAL
+        due_at: null
+        tags: ["学习"]
+      - alias: 房租
+        title: 交房租
+        status: TODO
+        priority: NORMAL
+        due_at: "2026-11-30T23:59:00+08:00"
+        tags: ["生活"]
+      - alias: 健身
+        title: 健身
+        status: TODO
+        priority: LOW
+        due_at: null
+        tags: ["健康"]
+      - alias: 修bug
+        title: "修 bug #42"
+        status: TODO
+        priority: HIGH
+        due_at: "2026-11-12T18:00:00+08:00"
+        tags: ["work"]
+        depends_on: "$论文"
+      - alias: 旧事
+        title: 旧任务
+        status: CANCELLED
+        priority: LOW
+        due_at: null
+        tags: []
+  expect:
+    tool_calls:
+      - name: meta.clarify
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.create
+      - task.update
+      - task.complete
+      - task.delete
+      - task.split
+  tags: ["D", "answer", "clarify"]
+
+- id: D2
+  group: ambiguous
+  input: "明天提醒我。"
+  setup: *dseed_setup
+  expect:
+    tool_calls:
+      - name: meta.clarify
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.create
+      - task.update
+      - task.delete
+      - task.split
+  tags: ["D", "answer", "clarify"]
+
+- id: D3
+  group: ambiguous
+  input: "清理一下。"
+  setup: *dseed_setup
+  expect:
+    tool_calls:
+      - name: meta.clarify
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.delete
+      - task.update
+      - task.complete
+      - task.split
+  tags: ["D", "answer", "clarify"]
+
+- id: D4
+  group: ambiguous
+  input: "把任务挪一下。"
+  setup: *dseed_setup
+  expect:
+    tool_calls:
+      - name: meta.clarify
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.update
+      - task.create
+      - task.delete
+      - task.split
+  tags: ["D", "answer", "clarify"]
+
+- id: D5
+  group: ambiguous
+  input: "周五那个事儿怎么样了？"
+  setup: *dseed_setup
+  expect:
+    tool_calls:
+      - name: meta.clarify
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.update
+      - task.complete
+      - task.delete
+      - task.split
+  tags: ["D", "answer", "clarify"]

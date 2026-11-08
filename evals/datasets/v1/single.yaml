@@ -1,0 +1,376 @@
+# A 组 · 单轮查询（6 条）+ B 组 · 单步写操作（8 条）
+# 题面严格按 docs/构建方案.md §7.4；setup.tasks 是 §7.1 的 8 条背景任务。
+# 时间基准固定为 2026-11-08 10:30 +08:00（周日）。
+
+- &seed
+  id: A1
+  group: single
+  input: "我今天还有什么没做完的？"
+  setup: &seed_setup
+    tasks:
+      - alias: 牛奶
+        title: 买牛奶
+        status: TODO
+        priority: NORMAL
+        due_at: null
+        start_at: null
+        estimate_min: null
+        tags: ["生活"]
+      - alias: 周报
+        title: 写周报
+        status: TODO
+        priority: HIGH
+        due_at: "2026-11-13T18:00:00+08:00"
+        start_at: null
+        estimate_min: null
+        tags: ["work"]
+      - alias: 演示
+        title: 客户演示
+        status: TODO
+        priority: URGENT
+        due_at: "2026-11-11T14:00:00+08:00"
+        start_at: "2026-11-11T14:00:00+08:00"
+        estimate_min: 60
+        tags: ["work"]
+      - alias: 论文
+        title: 读论文
+        status: DOING
+        priority: NORMAL
+        due_at: null
+        start_at: null
+        estimate_min: null
+        tags: ["学习"]
+      - alias: 房租
+        title: 交房租
+        status: TODO
+        priority: NORMAL
+        due_at: "2026-11-30T23:59:00+08:00"
+        start_at: null
+        estimate_min: null
+        tags: ["生活"]
+      - alias: 健身
+        title: 健身
+        status: TODO
+        priority: LOW
+        due_at: null
+        start_at: null
+        estimate_min: null
+        tags: ["健康"]
+      - alias: 修bug
+        title: "修 bug #42"
+        status: TODO
+        priority: HIGH
+        due_at: "2026-11-12T18:00:00+08:00"
+        start_at: null
+        estimate_min: null
+        tags: ["work"]
+        depends_on: "$论文"
+      - alias: 旧事
+        title: 旧任务
+        status: CANCELLED
+        priority: LOW
+        due_at: null
+        start_at: null
+        estimate_min: null
+        tags: []
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          status: todo
+          limit: {lte: 20}
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.create
+      - task.update
+      - task.complete
+      - task.delete
+      - task.split
+  tags: ["A", "query", "answer"]
+
+- id: A2
+  group: single
+  input: "把跟周报有关的任务找出来。"
+  setup: *seed_setup
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          keyword: "周报"
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.create
+      - task.update
+      - task.complete
+      - task.delete
+      - task.split
+  tags: ["A", "query", "answer"]
+
+- id: A3
+  group: single
+  input: "高优先级、还没开始的有哪些？"
+  setup: *seed_setup
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          priority: high
+          status: todo
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.create
+      - task.update
+      - task.complete
+      - task.delete
+      - task.split
+  tags: ["A", "query", "answer"]
+
+- id: A4
+  group: single
+  input: "这周三下午我忙吗？"
+  setup: *seed_setup
+  expect:
+    tool_calls:
+      - name: schedule.busy
+        args:
+          from: "2026-11-11T12:00:00+08:00"
+          to: "2026-11-11T18:00:00+08:00"
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.search
+      - task.create
+      - task.update
+      - task.complete
+      - task.delete
+      - task.split
+  tags: ["A", "query", "answer", "date"]
+
+- id: A5
+  group: single
+  input: "客户演示是什么时候来着？"
+  setup: *seed_setup
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          keyword: "客户演示"
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.create
+      - task.update
+      - task.complete
+      - task.delete
+      - task.split
+  tags: ["A", "query", "answer"]
+
+- id: A6
+  group: single
+  input: "我手上还有多少事没做完？"
+  setup: *seed_setup
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          status: todo
+          limit: {lte: 20}
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.create
+      - task.update
+      - task.complete
+      - task.delete
+      - task.split
+  tags: ["A", "query", "answer"]
+
+# ---------------------------------------------------------------------------
+# B 组 · 单步写操作
+# ---------------------------------------------------------------------------
+
+- id: B1
+  group: single
+  input: "买牛奶我买完了，标记一下。"
+  setup: *seed_setup
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          keyword: "牛奶"
+      - name: task.complete
+        args:
+          task_id: "$牛奶"
+          version: "$version.牛奶"
+    final_state:
+      count_delta: 0
+      tasks:
+        - id: "$牛奶"
+          status: DONE
+          version_delta: 1
+    must_not_call:
+      - task.delete
+      - task.update
+  tags: ["B", "action"]
+
+- id: B2
+  group: single
+  input: "明天下午三点提醒我开会。"
+  setup: *seed_setup
+  expect:
+    tool_calls:
+      - name: task.create
+        args:
+          title: {contains: "开会"}
+          due_at: "2026-11-09T15:00:00+08:00"
+    final_state:
+      count_delta: 1
+      created:
+        - title_contains: "开会"
+          due_date: "2026-11-09"
+          due_time: "15:00"
+    must_not_call:
+      - task.split
+      - task.delete
+  tags: ["B", "action", "date"]
+
+- id: B3
+  group: single
+  input: "把写周报的优先级改成紧急。"
+  setup: *seed_setup
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          keyword: "周报"
+      - name: task.update
+        args:
+          task_id: "$周报"
+          version: "$version.周报"
+          patch:
+            priority: urgent
+    final_state:
+      count_delta: 0
+      tasks:
+        - id: "$周报"
+          priority: URGENT
+          version_delta: 1
+    must_not_call:
+      - task.complete
+      - task.delete
+  tags: ["B", "action"]
+
+- id: B4
+  group: single
+  input: "读论文我开始了。"
+  setup: *seed_setup
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          keyword: "论文"
+      - name: task.update
+        args:
+          task_id: "$论文"
+          version: "$version.论文"
+          patch:
+            status: doing
+    final_state:
+      count_delta: 0
+      tasks:
+        - id: "$论文"
+          status: DOING
+    must_not_call:
+      - task.complete
+  tags: ["B", "action"]
+
+- id: B5
+  group: single
+  input: "给买牛奶加个'生活'标签。"
+  setup: *seed_setup
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          keyword: "牛奶"
+      - name: task.update
+        args:
+          task_id: "$牛奶"
+          version: "$version.牛奶"
+          patch:
+            tags: {contains: ["生活"]}
+    final_state:
+      count_delta: 0
+      tasks:
+        - id: "$牛奶"
+          tags_contain: ["生活"]
+          version_delta: 1
+    must_not_call:
+      - task.create
+  tags: ["B", "action"]
+
+- id: B6
+  group: single
+  input: "交房租改成下个月一号。"
+  setup: *seed_setup
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          keyword: "房租"
+      - name: task.update
+        args:
+          task_id: "$房租"
+          version: "$version.房租"
+          patch:
+            due_at: {date: "2026-12-01"}
+    final_state:
+      count_delta: 0
+      tasks:
+        - id: "$房租"
+          due_date: "2026-12-01"
+          version_delta: 1
+    must_not_call:
+      - task.create
+  tags: ["B", "action", "date"]
+
+- id: B7
+  group: single
+  input: "健身这事先取消吧。"
+  setup: *seed_setup
+  expect:
+    tool_calls:
+      - name: meta.clarify
+        args:
+          question: {contains: "取消"}
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.delete
+  tags: ["B", "action", "clarify"]
+
+- id: B8
+  group: single
+  input: "旧任务删掉吧，它没用了。"
+  setup: *seed_setup
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          keyword: "旧任务"
+      - name: task.delete
+        args:
+          task_id: "$旧事"
+    final_state:
+      unchanged: true
+      count_delta: 0
+      exists: ["$旧事"]
+    must_not_call:
+      - name: task.delete
+        args:
+          confirm_token: {not_null: true}
+      - task.complete
+  tags: ["B", "action", "destructive"]

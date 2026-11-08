@@ -96,7 +96,12 @@ def parse_args(tool_name: str, model_cls: type[BaseModel] | None, raw: dict[str,
     if model_cls is None:
         return BaseModel()
 
-    allowed = list(model_cls.model_fields)
+    # 工具 schema 对外按 alias 暴露（例如 schedule.busy 的 `from` 对应内部 `from_`），
+    # 所以"未知字段"必须同时接受字段名与 alias；否则模型严格照 schema 传参反而被拒。
+    allowed = sorted(
+        {name for name in model_cls.model_fields}
+        | {field.alias for field in model_cls.model_fields.values() if field.alias}
+    )
     unknown = [key for key in raw if key not in allowed]
     if unknown:
         suggestions: list[dict[str, Any]] = []

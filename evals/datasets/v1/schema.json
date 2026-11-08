@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cadence.local/evals/datasets/v1/schema.json",
+  "title": "Cadence eval case v1",
+  "type": "array",
+  "items": { "$ref": "#/$defs/case" },
+  "$defs": {
+    "group": {
+      "type": "string",
+      "enum": ["single", "multi", "ambiguous", "adversarial", "domain", "regression"]
+    },
+    "taskSetup": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "alias": { "type": "string" },
+        "title": { "type": "string", "minLength": 1 },
+        "status": { "type": "string", "enum": ["TODO", "DOING", "DONE", "CANCELLED"] },
+        "priority": { "type": "string", "enum": ["LOW", "NORMAL", "HIGH", "URGENT"] },
+        "due_at": { "type": ["string", "null"] },
+        "start_at": { "type": ["string", "null"] },
+        "estimate_min": { "type": ["integer", "null"] },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "rrule": { "type": ["string", "null"] },
+        "depends_on": { "type": ["string", "array"] }
+      },
+      "additionalProperties": true
+    },
+    "toolCall": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "args": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "mustNotCall": {
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "finalState": {
+      "type": "object",
+      "properties": {
+        "unchanged": { "type": "boolean" },
+        "count_delta": { "type": "integer" },
+        "tasks": { "type": "array", "items": { "type": "object" } },
+        "created": { "type": "array", "items": { "type": "object" } },
+        "exists": { "type": "array", "items": { "type": "string" } },
+        "not_exists": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "case": {
+      "type": "object",
+      "required": ["id", "group", "input", "setup", "expect", "tags"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "group": { "$ref": "#/$defs/group" },
+        "input": { "type": "string", "minLength": 1 },
+        "setup": {
+          "type": "object",
+          "required": ["tasks"],
+          "properties": {
+            "tasks": { "type": "array", "items": { "$ref": "#/$defs/taskSetup" } }
+          },
+          "additionalProperties": false
+        },
+        "expect": {
+          "type": "object",
+          "required": ["tool_calls", "final_state", "must_not_call"],
+          "properties": {
+            "tool_calls": { "type": "array", "items": { "$ref": "#/$defs/toolCall" } },
+            "final_state": { "$ref": "#/$defs/finalState" },
+            "must_not_call": { "type": "array", "items": { "$ref": "#/$defs/mustNotCall" } }
+          },
+          "additionalProperties": false
+        },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    }
+  }
+}

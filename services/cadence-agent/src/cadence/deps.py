@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from datetime import datetime
 from typing import Any
 
 from .config import Settings, get_settings
@@ -74,6 +75,12 @@ class Runtime:
         self.queue = TurnQueue(settings.turn_queue_capacity)
         # L3-2：全局 LLM 信号量。叶子节点：只有 provider 调用点会拿它。
         self.llm_semaphore = asyncio.Semaphore(settings.llm_max_concurrency)
+        # L4：评测冻结时钟。空值 = 真实时间；外部 live Agent 用
+        # EVAL_FROZEN_NOW=2026-11-08T10:30:00+08:00 启动，题面里的"今天/本周三"才可复现。
+        frozen_clock = None
+        if settings.eval_frozen_now.strip():
+            frozen_at = datetime.fromisoformat(settings.eval_frozen_now.replace("Z", "+00:00"))
+            frozen_clock = lambda: frozen_at  # noqa: E731 - 纯值捕获，无状态
         self.loop = Loop(
             settings=settings,
             registry=self.registry,
@@ -83,6 +90,7 @@ class Runtime:
             fast_llm=getattr(self.llm, "fast_llm", None) or self.llm,
             breaker=self.breaker,
             llm_semaphore=self.llm_semaphore,
+            clock=frozen_clock,
         )
         self._background: set[asyncio.Task[Any]] = set()
         #: trace_id → turn 任务。watchdog 靠它打印"该 trace 的协程栈"。

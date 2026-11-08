@@ -17,6 +17,7 @@ __pycache__/
 # ---------- 运行时产物 ----------
 traces/
 cache/
+.cache/
 *.log
 evals/reports/tmp/
 
@@ -27,6 +28,7 @@ pip-*/
 pip-ephem-wheel-cache-*/
 ~ip*
 pytest-of-*/
+pytest-cache-files-*/
 .tmp/pytest-of-*/
 .tmp/pip-*/
 .tmp/pt-*/

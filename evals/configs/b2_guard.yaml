@@ -1,0 +1,8 @@
+name: B2
+title: + 护栏
+features:
+  tool_contract: true
+  guard_id_whitelist: true
+  guard_confirm: true
+  clarify_enabled: true
+  model_routing: false

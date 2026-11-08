@@ -1,0 +1,8 @@
+name: B0
+title: 裸调用
+features:
+  tool_contract: false
+  guard_id_whitelist: false
+  guard_confirm: false
+  clarify_enabled: false
+  model_routing: false

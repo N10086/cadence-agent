@@ -106,6 +106,15 @@ class FakeCore:
         if method == "POST" and path.endswith(":complete"):
             tid = path[len("/api/v1/tasks/") : -len(":complete")]
             return self._transition(tid, (body or {}).get("version"), "DONE")
+        if method == "POST" and path.endswith(":start"):
+            tid = path[len("/api/v1/tasks/") : -len(":start")]
+            return self._transition(tid, (body or {}).get("version"), "DOING")
+        if method == "POST" and path.endswith(":cancel"):
+            tid = path[len("/api/v1/tasks/") : -len(":cancel")]
+            return self._transition(tid, (body or {}).get("version"), "CANCELLED")
+        if method == "POST" and path.endswith(":reopen"):
+            tid = path[len("/api/v1/tasks/") : -len(":reopen")]
+            return self._transition(tid, (body or {}).get("version"), "TODO")
         if path.endswith("/dependencies") and method == "POST":
             tid = path[len("/api/v1/tasks/") : -len("/dependencies")]
             dep = (body or {}).get("dependsOnId")

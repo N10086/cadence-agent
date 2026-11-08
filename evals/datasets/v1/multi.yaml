@@ -1,0 +1,208 @@
+# C 组 · 多步组合（6 条）。题面严格按 docs/构建方案.md §7.4。
+
+- &cseed
+  id: C1
+  group: multi
+  input: "买牛奶标记完成，然后建一个周五交报告的任务。"
+  setup: &cseed_setup
+    tasks:
+      - alias: 牛奶
+        title: 买牛奶
+        status: TODO
+        priority: NORMAL
+        due_at: null
+        tags: ["生活"]
+      - alias: 周报
+        title: 写周报
+        status: TODO
+        priority: HIGH
+        due_at: "2026-11-13T18:00:00+08:00"
+        tags: ["work"]
+      - alias: 演示
+        title: 客户演示
+        status: TODO
+        priority: URGENT
+        due_at: "2026-11-11T14:00:00+08:00"
+        start_at: "2026-11-11T14:00:00+08:00"
+        estimate_min: 60
+        tags: ["work"]
+      - alias: 论文
+        title: 读论文
+        status: DOING
+        priority: NORMAL
+        due_at: null
+        tags: ["学习"]
+      - alias: 房租
+        title: 交房租
+        status: TODO
+        priority: NORMAL
+        due_at: "2026-11-30T23:59:00+08:00"
+        tags: ["生活"]
+      - alias: 健身
+        title: 健身
+        status: TODO
+        priority: LOW
+        due_at: null
+        tags: ["健康"]
+      - alias: 修bug
+        title: "修 bug #42"
+        status: TODO
+        priority: HIGH
+        due_at: "2026-11-12T18:00:00+08:00"
+        tags: ["work"]
+        depends_on: "$论文"
+      - alias: 旧事
+        title: 旧任务
+        status: CANCELLED
+        priority: LOW
+        due_at: null
+        tags: []
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          keyword: "牛奶"
+      - name: task.complete
+        args:
+          task_id: "$牛奶"
+          version: "$version.牛奶"
+      - name: task.create
+        args:
+          title: {contains: "报告"}
+          due_at: "2026-11-13T18:00:00+08:00"
+    final_state:
+      count_delta: 1
+      tasks:
+        - id: "$牛奶"
+          status: DONE
+          version_delta: 1
+      created:
+        - title_contains: "报告"
+          due_date: "2026-11-13"
+          due_time: "18:00"
+    must_not_call:
+      - task.split
+  tags: ["C", "action", "multi", "date"]
+
+- id: C2
+  group: multi
+  input: "把写周报拆成三小步。"
+  setup: *cseed_setup
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          keyword: "周报"
+      - name: task.split
+        args:
+          parent_id: "$周报"
+          children:
+            - title: "列提纲"
+              estimate_min: 30
+            - title: "写初稿"
+              estimate_min: 90
+            - title: "校对"
+              estimate_min: 30
+          dry_run: true
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.create
+  tags: ["C", "action", "multi", "destructive"]
+
+- id: C3
+  group: multi
+  input: "看看今天有什么，然后把最急的那个开始做。"
+  setup: *cseed_setup
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          status: todo
+      - name: task.update
+        args:
+          task_id: "$演示"
+          version: "$version.演示"
+          patch:
+            status: doing
+    final_state:
+      count_delta: 0
+      tasks:
+        - id: "$演示"
+          status: DOING
+    must_not_call:
+      - name: task.update
+        args:
+          task_id: "$修bug"
+      - name: task.update
+        args:
+          task_id: "$周报"
+      - task.delete
+  tags: ["C", "action", "multi"]
+
+- id: C4
+  group: multi
+  input: "把高优先级的按截止时间排一下，告诉我先做哪个。"
+  setup: *cseed_setup
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          priority: high
+    final_state:
+      unchanged: true
+    must_not_call:
+      - task.create
+      - task.update
+      - task.complete
+      - task.delete
+      - task.split
+  tags: ["C", "answer", "multi"]
+
+- id: C5
+  group: multi
+  input: "客户演示之前得把材料准备好，给我建个任务，截止在演示前一天。"
+  setup: *cseed_setup
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          keyword: "客户演示"
+      - name: task.create
+        args:
+          title: {contains: "材料"}
+          due_at: {date: "2026-11-10"}
+    final_state:
+      count_delta: 1
+      created:
+        - title_contains: "材料"
+          due_date: "2026-11-10"
+    must_not_call:
+      - task.split
+  tags: ["C", "action", "multi", "date"]
+
+- id: C6
+  group: multi
+  input: "健身改成每周一三五重复。"
+  setup: *cseed_setup
+  expect:
+    tool_calls:
+      - name: task.search
+        args:
+          keyword: "健身"
+      - name: task.update
+        args:
+          task_id: "$健身"
+          version: "$version.健身"
+          patch:
+            rrule: "FREQ=WEEKLY;BYDAY=MO,WE,FR"
+    final_state:
+      count_delta: 0
+      tasks:
+        - id: "$健身"
+          rrule: "FREQ=WEEKLY;BYDAY=MO,WE,FR"
+          version_delta: 1
+    must_not_call:
+      - task.create
+      - task.split
+  tags: ["C", "action", "multi"]

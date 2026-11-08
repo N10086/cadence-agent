@@ -1,0 +1,8 @@
+name: B3
+title: + 双模型路由（完整版，L4 默认）
+features:
+  tool_contract: true
+  guard_id_whitelist: true
+  guard_confirm: true
+  clarify_enabled: true
+  model_routing: true

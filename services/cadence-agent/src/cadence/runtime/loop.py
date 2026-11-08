@@ -788,13 +788,15 @@ class Loop:
 
     async def _execute(self, tool: Tool, parsed: Any, ctx: TurnContext) -> ToolResult:
         started = time.perf_counter()
+        trace_args = _trace_args(parsed)
         try:
             data = await tool.handler(parsed, ctx)
         except ToolError as exc:
             duration = int((time.perf_counter() - started) * 1000)
             ctx.trace.add(
                 "TOOL", tool.name, duration_ms=duration, ok=False,
-                detail={"code": exc.code.value, "error": exc.message, "core_down": exc.core_down},
+                detail={"code": exc.code.value, "error": exc.message, "core_down": exc.core_down,
+                        "args": trace_args},
             )
             return ToolResult(ok=False, error=exc, summary=exc.message, duration_ms=duration,
                               model_payload=exc.to_tool_json())
@@ -808,13 +810,15 @@ class Loop:
                 core_down=True,
             )
             ctx.trace.add("TOOL", tool.name, duration_ms=duration, ok=False,
-                          detail={"code": wrapped.code.value, "error": str(exc)[:300]})
+                          detail={"code": wrapped.code.value, "error": str(exc)[:300],
+                                  "args": trace_args})
             return ToolResult(ok=False, error=wrapped, summary=wrapped.message, duration_ms=duration,
                               model_payload=wrapped.to_tool_json())
 
         duration = int((time.perf_counter() - started) * 1000)
         summary = _summarize(tool.name, data)
-        ctx.trace.add("TOOL", tool.name, duration_ms=duration, ok=True, detail={"summary": summary})
+        ctx.trace.add("TOOL", tool.name, duration_ms=duration, ok=True,
+                      detail={"summary": summary, "args": trace_args})
         return ToolResult(
             ok=True,
             data=data,
@@ -1223,3 +1227,32 @@ def _truncate(data: Any, settings: Settings) -> Any:
         if len(items) > limit:
             return {**data, **{"items": items[:limit], "has_more": True, "truncated": True}}
     return data
+
+
+def _trace_args(parsed: Any) -> dict[str, Any]:
+    """把工具入参写进 trace 的 `detail.args`（L4 的 name/arg 指标要读它）。
+
+    两个约束：
+    1. `json.dumps` 必须能序列化 —— pydantic 的 `datetime` 先转 ISO 字符串；
+    2. 令牌类字段不落盘 —— `confirm_token` / `idempotency_key` 对评测无用，没必要留。
+    """
+    raw = parsed.model_dump() if hasattr(parsed, "model_dump") else parsed
+    if not isinstance(raw, dict):
+        return {}
+    return _jsonable(raw)  # type: ignore[return-value]
+
+
+def _jsonable(value: Any) -> Any:
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, dict):
+        return {
+            str(k): _jsonable(v)
+            for k, v in value.items()
+            if k not in {"confirm_token", "idempotency_key"}
+        }
+    if isinstance(value, (list, tuple)):
+        return [_jsonable(v) for v in value]
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    return str(value)
