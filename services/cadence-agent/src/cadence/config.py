@@ -94,7 +94,7 @@ class Settings(BaseSettings):
     #: **累计计费** token 上限（不是单次上下文大小，那个看 max_context_tokens）。
     #: 注意：每步都会重发上下文，所以 3 步的实际计费 token 约为单步的 3 倍。
     #: PRD 的 "2200 token/轮" 指的是**单次请求的上下文预算**，对应 max_context_tokens。
-    token_budget_per_turn: int = Field(20000, ge=100)
+    token_budget_per_turn: int = Field(40000, ge=100)
     max_context_tokens: int = Field(4000, ge=500)
     llm_retry_times: int = 1
     llm_retry_backoff_s: float = 0.8
