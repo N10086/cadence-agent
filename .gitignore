@@ -1,4 +1,4 @@
-# ---------- Java ----------
+﻿# ---------- Java ----------
 target/
 *.class
 *.jar
@@ -70,4 +70,11 @@ services/cadence-web/docs/.p-l5/
 .tmp/
 
 # ---------- 评测运行产生的会话（每次 run 一个，别入库）----------
-data/agent/sessions/eval-*.json
+data/agent/sessions/
+
+# ---------- 与本项目无关的本地工具产物（DrawAI 动画插件、临时画布）----------
+.drawai-motion/
+*.drawai
+*.drawai.media/
+
+# ---------- Agent 本地会话（含测试/调试痕迹，不属于项目内容）----------

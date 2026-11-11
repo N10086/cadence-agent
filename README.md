@@ -45,14 +45,41 @@ scripts/               代码生成、矩阵校验、开发脚本
 
 ## 快速开始
 
-### 方式 A：容器一键起三件套（推荐）
+### 前置条件
+
+| 依赖 | 版本 | 用途 |
+|---|---|---|
+| Docker Desktop | 含 compose v2 | 方式 A 一键起三件套 |
+| JDK | 21+ | 方式 B 本地跑 Core |
+| Maven | 3.9+ | 方式 B 构建 Core |
+| Python | 3.13+ | 方式 B 跑 Agent / 评测 |
+
+全部依赖下载约 1.5 GB，首次构建 3–8 分钟。
+
+### 方式 A：容器一键起三件套（推荐，无需装 JDK/Python）
 
 ```powershell
+git clone https://github.com/N10086/cadence-agent.git
+cd cadence-agent
+cd cadence-agent
+
+# 可选：填 LLM key。不填也能跑，Agent 自动进 fake 模式（离线、零成本）
+Copy-Item .env.example .env
+
 docker compose up -d --build
-# 页面：http://localhost:18080/ui/index.html
-# Core：http://localhost:18080/actuator/health
-# Agent：http://localhost:18000/health
 ```
+
+起好后：
+
+| 入口 | 地址 |
+|---|---|
+| **前端页面** | http://localhost:18080/ui/index.html |
+| Core 健康 | http://localhost:18080/actuator/health |
+| Agent 健康 | http://localhost:18000/health |
+
+> **首次启动会自动灌 8 条演示任务**（Flyway `V4__demo_seed.sql`），页面打开就有数据可操作：
+> 买牛奶、写周报、客户演示、读论文、交房租、健身、修 bug #42、旧任务。
+> 想清空重来：`docker compose down -v && docker compose up -d --build`（`-v` 会删数据卷）。
 
 > 容器里 Core 通过 `CORE_WEB_DIR=/app/web` 找前端（Dockerfile 已把 `cadence-web` 静态文件拷进去），
 > Agent 的 `data/agent` 挂 `cadence_agent_data` volume。没有 LLM key 时 Agent 自动进 fake 模式。
@@ -60,45 +87,108 @@ docker compose up -d --build
 ### 方式 B：本地开发（三条启动命令）
 
 ```powershell
-# 1. 起数据库
+# 1. 起数据库（自动建库 TODO，监听 5433）
 docker compose up -d postgres
 
-# 2. 起后端（Core 同时托管前端页面）
+# 2. 起后端（Core 同时托管前端页面，Flyway 自动建表 + 灌 8 条演示数据）
 cd services/cadence-core
 mvn spring-boot:run
 
 # 3. 起 Agent（另开一个终端）
 cd services/cadence-agent
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 $env:PYTHONPATH='src'
 .\.venv\Scripts\python.exe -m uvicorn cadence.main:app --port 18000
 ```
 
+> macOS / Linux：把 `.\\.venv\\Scripts\\python.exe` 换成 `./.venv/bin/python`，
+> `Copy-Item` 换成 `cp`。
+
 打开 `http://localhost:18080/ui/index.html`。Agent 默认地址是 `http://<当前主机>:18000`，
 可用 `?agent=http://host:18000`、`localStorage['cadence.agentUrl']` 或页面 `<meta name="cadence-agent-url">` 覆盖。
 
+### 自检：确认链路真的通了
+
+```powershell
+# 1. 三个健康检查都应返回 UP
+curl http://localhost:18080/actuator/health
+curl http://localhost:18000/health          # 期望 llmMode: live 或 fake
+
+# 2. 库里有 8 条演示任务
+curl "http://localhost:18080/api/v1/tasks?limit=50"
+
+# 3. 让 Agent 查一次任务（会真实调模型或走 fake 剧本）
+$body = '{"sessionId":"smoke","message":"我现在有哪些任务？"}'
+$resp = Invoke-RestMethod -Method Post -Uri http://localhost:18000/chat `
+        -ContentType 'application/json; charset=utf-8' `
+        -Body ([Text.Encoding]::UTF8.GetBytes($body))
+$trace = Invoke-RestMethod "http://localhost:18000/trace/$($resp.data.traceId)"
+$trace.data.steps | Select-Object kind, name, durationMs
+```
+
+看到 `route.classify → tool.route → llm.step1 → task.search → meta.finish` 这条链，说明
+**前端 → Agent → Core → PostgreSQL** 全通了。
+
+
 ### 评测命令（一条）
+
+需要 Python 依赖（在仓库根目录）：
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r evals/requirements.txt
+$env:PYTHONPATH='services/cadence-agent/src'   # 评测器要 import cadence.*
+```
+
+**① 冒烟（零成本、零依赖，验证评测流水线）**
 
 ```powershell
 python -m evals.cli run --all --llm fake --core fake --out evals/reports/
 ```
 
-> fake 只验证评测流水线；真实数字用 `--llm live` 跑，报告头会标 `live` 或 `live+fake`。
-> 不想起后端也能看界面：`http://localhost:18080/ui/index.html?demo`（内存演示数据，
-> 对话区也走内存假事件，不连 Agent）。
+> 期望 35/35 全过。它证明"评测器 + 35 条数据集"本身是对的，不代表模型能力。
+
+**② 真实模型 + 内存 Core（安全，不碰任何数据库）**
 
 ```powershell
-# 真实模型 + 内存 Core（安全：不会删任何库；工具调用、耗时、成本都是真的）
 $env:EVAL_FROZEN_NOW='2026-11-08T10:30:00+08:00'
 python -m evals.cli run --all --llm live --core fake --no-cache --out evals/reports/
-
-# 完整链路（Core 也是真的）：⚠️ reset 会先删光目标库，必须显式 --allow-reset
-python -m evals.cli run --all --llm live --core live --allow-reset `
-  --snapshot-dir .tmp/eval-snapshots --out evals/reports/
 ```
 
-> `--core live` 不加 `--allow-reset` 会被直接拒绝（`ResetNotAllowed`）。
-> 不要指向开发库 `TODO`——它会删掉 445 条种子数据；建议单独建 `cadence_eval` 库。
-> 加了 `--snapshot-dir` 会先把待删任务落一份 `pre-reset-*.json`。
+> 工具调用、耗时、成本都是真的，但 Core 是内存假件，所以不会清库。
+> 冻结时钟是必须的：题面里的"今天/本周三"以 2026-11-08 10:30 +08:00 为基准。
+
+**③ 完整链路（Core + 数据库也是真的）**
+
+先单独建一个空库，**不要用 `TODO`**——它会先删光目标库再灌题面数据：
+
+```powershell
+docker exec cadence-postgres psql -U cadence -d TODO -c "CREATE DATABASE benchmark"
+
+$env:EVAL_FROZEN_NOW='2026-11-08T10:30:00+08:00'
+$env:CORE_DB_URL='jdbc:postgresql://postgres:5432/benchmark'
+docker compose up -d --force-recreate core    # 让 Core 连 benchmark，Flyway 建表
+
+python -m evals.cli run --all --llm live --core live `
+  --core-url http://localhost:18080 --agent-url http://localhost:18000 `
+  --allow-reset --snapshot-dir .tmp/eval-snapshots --no-cache --out evals/reports/
+```
+
+> `--core live` 不加 `--allow-reset` 会被直接拒绝（`ResetNotAllowed`），这是故意的防呆。
+> `--snapshot-dir` 会先把待删任务落一份 `pre-reset-*.json`，删错了还能捡回来。
+> 跑完切回演示库：`docker compose up -d --force-recreate core`（不设 `CORE_DB_URL` 即回到 `TODO`）。
+
+### 评测数据在哪
+
+| 内容 | 路径 | 说明 |
+|---|---|---|
+| 35 条用例 | `evals/datasets/v1/*.yaml` | 单轮 / 多步 / 歧义 / 对抗 / 边界 / 领域六组 |
+| 用例结构约束 | `evals/datasets/v1/schema.json` | 给人看和 CI 用的同一份 schema |
+| 演示数据（8 条） | `services/cadence-core/src/main/resources/db/migration/V4__demo_seed.sql` | 开机自动灌 |
+| 评测运行配置 | `evals/configs/` | 每次 run 用哪套参数 |
+| 跑分结果与逐轮明细 | `evals/reports/` | `V1.md` 汇总 + `-详细-*.md` 逐条逐轮 |
+
 
 ---
 
