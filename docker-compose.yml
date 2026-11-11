@@ -1,7 +1,6 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: cadence-postgres
     environment:
       POSTGRES_DB: TODO
       POSTGRES_USER: cadence
@@ -23,7 +22,6 @@ services:
     build:
       context: .
       dockerfile: services/cadence-core/Dockerfile
-    container_name: cadence-core
     environment:
       CORE_PORT: "18080"
       # 默认 TODO（演示库）；想切到评测库就设 CORE_DB_URL，例如：
@@ -51,7 +49,6 @@ services:
     build:
       context: .
       dockerfile: services/cadence-agent/Dockerfile
-    container_name: cadence-agent
     environment:
       CORE_BASE_URL: http://core:18080
       LLM_MODE: ${LLM_MODE:-auto}
@@ -85,7 +82,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  # 不写死 name：由 compose 项目名决定（仓库目录名 / -p 参数），
+  # 这样同一台机器上 clone 多份、或换目录重跑都不会撞卷。
   cadence_pgdata:
-    name: cadence_pgdata
   cadence_agent_data:
-    name: cadence_agent_data
