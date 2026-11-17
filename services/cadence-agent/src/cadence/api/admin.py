@@ -186,3 +186,19 @@ async def health() -> dict[str, Any]:
         return await asyncio.wait_for(rt.health(), timeout=rt.settings.core_timeout_s + 2)
     except asyncio.TimeoutError:
         return {"status": "DOWN", "core": "TIMEOUT", "llmMode": rt.mode}
+
+
+@router.get("/tools")
+async def tools_health() -> dict[str, Any]:
+    """工具执行沙箱的运行时状态：哪个工具在超时、哪个被熔断。
+
+    运维排查用：用户报"任务卡住"时，先看这里有没有 `open=true`。
+    """
+    rt = get_runtime()
+    return {
+        "timeoutS": rt.settings.tool_timeout_s,
+        "maxConcurrency": rt.settings.tool_max_concurrency,
+        "breakerThreshold": rt.settings.tool_breaker_threshold,
+        "breakerCooldownS": rt.settings.tool_breaker_cooldown_s,
+        "tools": rt.loop.sandbox.snapshot(),
+    }

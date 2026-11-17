@@ -220,6 +220,10 @@ async def test_f9_timeout_retries_then_degrades(runtime, core) -> None:
         fail(LLMTimeout("上游超时")),
         fail(LLMTimeout("上游超时")),
     ]
+    # L0 默认会按 llm_retry_times 重试一次，会多吃掉一个剧本条目，
+    # 导致还没走到 L2 剧本就耗尽。这里关掉重试，让三步失败对应
+    # L0(reason) → L1(fast) → L2(single_step) 的降级链。
+    runtime.settings.llm_retry_times = 0
     result = await run_script(runtime, script, "帮我准备面试", tier="reason")
 
     assert result.outcome.degraded is True

@@ -105,6 +105,16 @@ class Settings(BaseSettings):
     tool_result_max_items: int = 20
     tool_result_max_chars: int = 1500
 
+    # ---------- 工具执行沙箱（进程内治理：超时 / 并发 / 按工具熔断）----------
+    #: 单个工具执行超时。此前只有 LLM 读超时，工具 hang 住会拖死整轮。
+    tool_timeout_s: float = 10.0
+    #: 同一个工具的最大并发；避免瞬时打爆 Core。
+    tool_max_concurrency: int = 8
+    #: 同一工具连续失败多少次后短路。
+    tool_breaker_threshold: int = 3
+    #: 短路时长。
+    tool_breaker_cooldown_s: float = 30.0
+
     # ---------- 工具类别路由（两级注入）----------
     # True：每轮先用类别摘要让模型选 read/write/destructive/control，
     #       再把该类工具注入上下文（类别摘要不进第二级）。

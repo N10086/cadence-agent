@@ -68,6 +68,7 @@ from ..runtime.context import TurnContext
 from ..runtime.errors import BudgetExceeded, ErrorCode, ToolError
 from ..runtime.fingerprint import FingerprintTracker
 from ..runtime.messages import humanize, humanize_event, redact_protocol_text
+from ..runtime.sandbox import SandboxRejected, SandboxTimeout, ToolSandbox
 from ..runtime.session import SessionState, compress_messages, estimate_messages
 from ..tools.base import Tool, ToolResult
 from ..tools.registry import ToolRegistry
@@ -147,6 +148,7 @@ class Loop:
         breaker: Breaker | None = None,
         llm_semaphore: asyncio.Semaphore | None = None,
         clock: Callable[[], datetime] | None = None,
+        sandbox: ToolSandbox | None = None,
     ) -> None:
         self.settings = settings
         self.registry = registry
@@ -155,6 +157,13 @@ class Loop:
         # 但装配层可以传一个真·快模型进来，L1 降级会优先用它。
         self.fast_llm = fast_llm or llm
         self.breaker = breaker
+        # 工具执行治理：单工具超时 / 并发 / 按工具熔断。与 LLM 熔断分开。
+        self.sandbox = sandbox or ToolSandbox(
+            timeout_s=settings.tool_timeout_s,
+            max_concurrency=settings.tool_max_concurrency,
+            breaker_threshold=settings.tool_breaker_threshold,
+            breaker_cooldown_s=settings.tool_breaker_cooldown_s,
+        )
         # L3-2：全局 LLM 信号量。**只在 provider 调用点（叶子）持有**，
         # 不在会话锁之外任何地方取，也不在持有它的时候去拿别的锁 —— 资源图单向。
         self.llm_semaphore = llm_semaphore
@@ -885,7 +894,26 @@ class Loop:
         started = time.perf_counter()
         trace_args = _trace_args(parsed)
         try:
-            data = await tool.handler(parsed, ctx)
+            # 沙箱：单工具超时 / 并发上限 / 按工具熔断。
+            data = await self.sandbox.run(tool.name, lambda: tool.handler(parsed, ctx))
+        except SandboxRejected as rejected:
+            duration = int((time.perf_counter() - started) * 1000)
+            err = ToolError(ErrorCode.UPSTREAM_UNAVAILABLE, rejected.message, core_down=False)
+            ctx.trace.add(
+                "GUARD", "guard.sandbox_reject", ok=False,
+                detail={"tool": tool.name, "retry_after_s": round(rejected.retry_after_s, 1)},
+            )
+            return ToolResult(ok=False, error=err, summary=err.message, duration_ms=duration,
+                              model_payload=err.to_tool_json())
+        except SandboxTimeout as timeout:
+            duration = int((time.perf_counter() - started) * 1000)
+            err = timeout.as_tool_error()
+            ctx.trace.add(
+                "GUARD", "guard.sandbox_timeout", ok=False,
+                detail={"tool": tool.name, "timeout_s": self.settings.tool_timeout_s},
+            )
+            return ToolResult(ok=False, error=err, summary=err.message, duration_ms=duration,
+                              model_payload=err.to_tool_json())
         except ToolError as exc:
             duration = int((time.perf_counter() - started) * 1000)
             ctx.trace.add(

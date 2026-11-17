@@ -51,8 +51,12 @@ def test_only_one_waitable_lock_in_the_process() -> None:
 
 
 def test_llm_semaphore_is_created_once_in_deps() -> None:
-    assert _calls_of("Semaphore") == ["deps.py"], (
-        "LLM 信号量只允许在 deps.py 装配一次；散布出去就无法保证它是叶子"
+    # 允许两处，且都是**叶子**（只在 provider / tool handler 调用点持有，
+    # 持有期间不取另一个信号量）：
+    #   deps.py          → LLM 全局并发
+    #   runtime/sandbox.py → 按工具并发上限（保护 Core，不参与资源图成环）
+    assert _calls_of("Semaphore") == ["deps.py", "runtime/sandbox.py"], (
+        "信号量只允许在 deps.py（LLM）与 runtime/sandbox.py（按工具）各装配一处"
     )
 
 

@@ -1,5 +1,7 @@
 # Cadence
 
+[![CI](https://github.com/N10086/cadence-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/N10086/cadence-agent/actions/workflows/ci.yml)
+
 传统任务后端 + Agent 协作层。
 
 下层的 Spring Boot 后端**不认识任何 AI**，它只提供带乐观锁的 REST 接口。
@@ -247,6 +249,51 @@ python -m evals.cli run --all --llm live --core live `
 - 路由调用本身约 220 token、7 token 输出（用 `deepseek-chat`），比省下的 schema 便宜；
 - 关掉：`.env` 设 `TOOL_CATEGORY_ROUTING=false`（回到 10 个工具全量注入，用于对比）。
 - 代码：`tools/routing.py`（摘要+规则+解析）、`registry.openai_tools(categories)`、`loop._route_tools()`。
+
+---
+
+## 工具执行沙箱（进程内治理）
+
+先划清边界：**这不是 OS 级隔离**（没有 seccomp / 容器 / 独立进程）。本项目的工具是
+Agent 进程内的 async 函数，通过 httpx 调 Core REST，不是任意代码执行器；真正要防的是
+「一个工具失控拖垮整轮 / 打爆下游」。
+
+| 能力 | 取值 | 解决什么 |
+|---|---|---|
+| 单工具超时 | `TOOL_TIMEOUT_S=10` | 工具 hang 住不会拖死整轮（此前只有 LLM 读超时） |
+| 按工具并发上限 | `TOOL_MAX_CONCURRENCY=8` | 同一工具瞬时并发打爆 Core |
+| 按工具熔断 | 连续 3 次失败 → 短路 30s | 下游挂了不再反复打；**与 LLM 熔断分开** |
+| 状态可观测 | `GET /tools` | 用户报"卡住"时，先看哪个工具 `open=true` |
+
+被拦下时 trace 会落 `guard.sandbox_timeout` / `guard.sandbox_reject`，模型收到的是
+"工具超时，可换一个工具"的观测，而不是整轮失败。
+
+**三层加起来才等于"不会越权、不会拖垮、不会打爆"**：
+
+```
+护栏层   FORBIDDEN_TOOLS + 四类权限 + 两阶段确认   → 不越权
+沙箱层   超时 + 并发 + 按工具熔断                  → 不拖垮、不打爆
+预算层   步数 + token + 成本                       → 不烧钱
+```
+
+代码：[`runtime/sandbox.py`](services/cadence-agent/src/cadence/runtime/sandbox.py)，
+接入点 [`loop.py::_execute`](services/cadence-agent/src/cadence/runtime/loop.py#L893)。
+
+---
+
+## CI
+
+[![CI](https://github.com/N10086/cadence-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/N10086/cadence-agent/actions/workflows/ci.yml)
+
+每次 push / PR 跑三个 job：
+
+| job | 内容 | 证明什么 |
+|---|---|---|
+| `agent` | `pytest tests`（371 passed / 22 xfailed） | 循环、护栏、沙箱没坏 |
+| `eval-smoke` | fake 模式跑完 35 条，**必须 35/35** | 数据集、评测器、装配没被改坏 |
+| `core` | `mvn verify`（Testcontainers 起真 PostgreSQL） | 后端接口与迁移没坏 |
+
+改 prompt / 工具 / 路由之后，**"功能没退化"的最短证据链**就是这三条。
 
 ---
 
