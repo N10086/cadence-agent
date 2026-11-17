@@ -215,7 +215,11 @@ class Loop:
 
         # L3 长期记忆：用户显式说"记住 …"时落一条事实，后续每轮都会注入。
         fact = _explicit_fact(user_message)
-        if fact and remember_fact(session, fact, kind="explicit", limit=self.settings.memory_facts_limit):
+        if (
+            fact
+            and self.settings.memory_enabled
+            and remember_fact(session, fact, kind="explicit", limit=self.settings.memory_facts_limit)
+        ):
             ctx.trace.add("GUARD", "memory.fact", detail={"text": fact[:120]})
 
         hits = injection.scan(user_message)
@@ -1168,10 +1172,17 @@ class Loop:
             }
         )
 
-        # 三级记忆：L2 摘要 → L3 长期记忆 → 约束，然后才是 L1 最近对话
-        for block in memory_blocks(session):
-            messages.append({"role": "system", "content": block})
-        for turn in session.recent_turns:
+        # 三级记忆：L2 摘要 → L3 长期记忆 → 约束，然后才是 L1 最近对话。
+        # memory_enabled=False 时三段都不注入（A/B 对照里的"无记忆"基线）。
+        if self.settings.memory_enabled:
+            for block in memory_blocks(session):
+                messages.append({"role": "system", "content": block})
+        recent = session.recent_turns
+        if self.settings.context_recent_turns > 0:
+            recent = recent[-self.settings.context_recent_turns :]
+        else:
+            recent = []
+        for turn in recent:
             messages.append({"role": turn.role, "content": turn.content})
 
         messages.append({"role": "user", "content": user_message})

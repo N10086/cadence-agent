@@ -140,6 +140,8 @@ class Settings(BaseSettings):
     memory_window_tokens: int = 800
     #: L1 条数硬上限（防止短消息把窗口撑太宽）。
     memory_max_turns: int = 8
+    #: 注入 prompt 的最近轮数；0 = 不带历史（用于 A/B 对照：无记忆基线）。
+    context_recent_turns: int = 8
     #: L2 滚动摘要的最大字符数；超长时保留最近的部分。
     memory_summary_chars: int = 300
     #: L3 长期事实条数上限。
