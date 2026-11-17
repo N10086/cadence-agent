@@ -306,12 +306,17 @@ async def test_context_compression_is_traced_when_over_budget(runtime) -> None:
     assert "guard.compress" in names
 
 
-async def test_session_summary_is_never_generated(runtime) -> None:
-    """BUG-SP2-07：session.summary 永远是空串；长对话只保留最近 3 轮。"""
-    session = runtime.sessions.get("s_summary")
-    await _run(runtime, [say("hi")], "hi", session_id="s_summary")
-    session.add_turn("user", "第一轮")
-    assert session.summary == ""
+async def test_session_summary_is_generated_when_window_overflows(runtime) -> None:
+    """三级记忆的压缩点在 API 层（chat finally），这里只验 loop 侧不吞掉 L2/L3 注入。"""
+    from cadence.runtime.memory import context_blocks
+    from cadence.runtime.session import SessionState
+
+    session = SessionState(session_id="s_summary", summary="之前聊过周报")
+    session.facts = [{"text": "我周三到周五不可用", "kind": "explicit"}]
+
+    blocks = context_blocks(session)
+    assert any("之前聊过周报" in b for b in blocks)
+    assert any("我周三到周五不可用" in b for b in blocks)
 
 
 def _trace_steps(runtime) -> list:

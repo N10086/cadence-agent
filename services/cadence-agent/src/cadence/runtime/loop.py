@@ -49,6 +49,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import time
 from collections.abc import Awaitable, Callable
 from contextlib import asynccontextmanager
@@ -67,6 +68,8 @@ from ..promptlib import system_prompt
 from ..runtime.context import TurnContext
 from ..runtime.errors import BudgetExceeded, ErrorCode, ToolError
 from ..runtime.fingerprint import FingerprintTracker
+from ..runtime.memory import context_blocks as memory_blocks
+from ..runtime.memory import remember_fact
 from ..runtime.messages import humanize, humanize_event, redact_protocol_text
 from ..runtime.sandbox import SandboxRejected, SandboxTimeout, ToolSandbox
 from ..runtime.session import SessionState, compress_messages, estimate_messages
@@ -209,6 +212,11 @@ class Loop:
             "guard.classify",
             detail={"intent": classify.intent.value, "ambiguous": classify.ambiguous, "note": classify.note},
         )
+
+        # L3 长期记忆：用户显式说"记住 …"时落一条事实，后续每轮都会注入。
+        fact = _explicit_fact(user_message)
+        if fact and remember_fact(session, fact, kind="explicit", limit=self.settings.memory_facts_limit):
+            ctx.trace.add("GUARD", "memory.fact", detail={"text": fact[:120]})
 
         hits = injection.scan(user_message)
         if hits:
@@ -1160,12 +1168,9 @@ class Loop:
             }
         )
 
-        if session.summary:
-            messages.append({"role": "system", "content": "【会话摘要】" + session.summary})
-        if session.constraints:
-            messages.append(
-                {"role": "system", "content": "【已确认的约束】" + json.dumps(session.constraints, ensure_ascii=False)}
-            )
+        # 三级记忆：L2 摘要 → L3 长期记忆 → 约束，然后才是 L1 最近对话
+        for block in memory_blocks(session):
+            messages.append({"role": "system", "content": block})
         for turn in session.recent_turns:
             messages.append({"role": turn.role, "content": turn.content})
 
@@ -1270,6 +1275,14 @@ def _assistant_message(response: LLMResponse) -> dict[str, Any]:
             for i, call in enumerate(response.tool_calls)
         ],
     }
+
+
+def _explicit_fact(message: str) -> str:
+    """识别"记住 …"这类显式长期记忆指令，返回要记住的正文。"""
+    match = re.match(r"^\s*(?:请)?(?:记住|记一下|记下)[：:，,\s]*(.+)$", message or "", re.S)
+    if not match:
+        return ""
+    return " ".join(match.group(1).split())[:200]
 
 
 def _charge(settings: Settings, ctx: TurnContext, response: LLMResponse) -> None:

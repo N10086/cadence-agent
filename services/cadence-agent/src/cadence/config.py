@@ -134,6 +134,17 @@ class Settings(BaseSettings):
     #: L3-3：同一会话的上一轮没结束时，第二条消息等锁的上限。超时 → 409 SESSION_BUSY。
     session_lock_timeout_s: float = 20.0
 
+    # ---------- 三级记忆（滑动窗口 + 滚动摘要 + 长期事实）----------
+    memory_enabled: bool = True
+    #: L1 窗口的 token 预算；按最新往回装，至少保留 1 轮。
+    memory_window_tokens: int = 800
+    #: L1 条数硬上限（防止短消息把窗口撑太宽）。
+    memory_max_turns: int = 8
+    #: L2 滚动摘要的最大字符数；超长时保留最近的部分。
+    memory_summary_chars: int = 300
+    #: L3 长期事实条数上限。
+    memory_facts_limit: int = 10
+
     # ---------- 并发（L3） ----------
     #: L3-1 入口准入：同时"排队 + 运行"的 turn 上限。满 → 503 OVERLOADED，不无限排队。
     turn_queue_capacity: int = Field(64, ge=1)

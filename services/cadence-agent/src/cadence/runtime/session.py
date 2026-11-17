@@ -1,8 +1,11 @@
 """会话状态。
 
-结构刻意做小（PRD 02 §5.2）：
+结构刻意做小（PRD 02 §5.2），但现在是**三级记忆**：
 
-    会话状态 = 摘要 + 最近 3 轮 + 待确认操作 + 已确认约束
+    L1 短期  recent_turns   最近若干轮原文（按 token 预算滑动窗口）
+    L2 中期  summary        被窗口挤出的轮次压成的滚动摘要
+    L3 长期  facts          稳定事实（"记住…"、偏好/约束），去重、有上限
+    + 待确认操作 + 已确认约束
 
 **永远不存任务列表。** 需要时用 `task.search` 查。
 这条破了，上下文中期必然爆炸，而你会以为是模型不行。
@@ -37,6 +40,10 @@ class SessionState:
     session_id: str
     summary: str = ""
     recent_turns: list[Turn] = field(default_factory=list)
+    #: L3 长期记忆：稳定事实（偏好/约束/别名），去重、有上限
+    facts: list[dict[str, Any]] = field(default_factory=list)
+    #: 累计被窗口挤出的轮次数（观测用）
+    archived_turns: int = 0
     pending_confirm: dict[str, Any] | None = None
     constraints: dict[str, Any] = field(default_factory=dict)
     last_trace_id: str = ""
@@ -62,6 +69,8 @@ class SessionState:
             "session_id": self.session_id,
             "summary": self.summary,
             "recent_turns": [asdict(t) for t in self.recent_turns],
+            "facts": self.facts,
+            "archived_turns": self.archived_turns,
             "pending_confirm": self.pending_confirm,
             "constraints": self.constraints,
             "last_trace_id": self.last_trace_id,
@@ -74,6 +83,8 @@ class SessionState:
             session_id=data["session_id"],
             summary=data.get("summary", ""),
             recent_turns=[Turn(**t) for t in data.get("recent_turns", [])],
+            facts=data.get("facts", []),
+            archived_turns=data.get("archived_turns", 0),
             pending_confirm=data.get("pending_confirm"),
             constraints=data.get("constraints", {}),
             last_trace_id=data.get("last_trace_id", ""),

@@ -29,6 +29,7 @@ from fastapi.responses import JSONResponse
 from ..deps import Runtime, get_runtime
 from ..llm.router import route
 from ..promptlib import system_prompt
+from ..runtime import memory
 from ..runtime.budget import Budget
 from ..runtime.context import TurnContext
 from ..runtime.errors import ErrorCode, ToolError
@@ -231,9 +232,24 @@ async def _run_turn_serialized(
             ended_by = "error"
         finally:
             total_ms = int((time.perf_counter() - started) * 1000)
-            session.add_turn("user", message, keep=rt.settings.session_recent_turns)
+            # 先按"原始上限"追加，再由记忆层做滑动窗口 / 滚动摘要，
+            # 否则 add_turn 一开始就截到 3 条，L2 永远拿不到被挤出的内容。
+            keep = max(rt.settings.memory_max_turns, rt.settings.session_recent_turns)
+            session.add_turn("user", message, keep=keep)
             if outcome is not None and outcome.text:
-                session.add_turn("assistant", outcome.text, keep=rt.settings.session_recent_turns)
+                session.add_turn("assistant", outcome.text, keep=keep)
+            if rt.settings.memory_enabled:
+                stats = memory.compact(
+                    session,
+                    memory.MemoryConfig(
+                        window_tokens=rt.settings.memory_window_tokens,
+                        max_turns=rt.settings.memory_max_turns,
+                        summary_chars=rt.settings.memory_summary_chars,
+                        facts_limit=rt.settings.memory_facts_limit,
+                    ),
+                )
+                if stats.get("evicted"):
+                    trace.add("GUARD", "memory.compact", detail=stats)
             session.last_trace_id = trace_id
             session.pending_confirm = outcome.confirm if outcome is not None else None
             rt.sessions.save(session)

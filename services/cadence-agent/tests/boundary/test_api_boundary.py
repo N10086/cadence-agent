@@ -287,6 +287,35 @@ def test_health_core_down(client, runtime, core) -> None:
 # =====================================================================
 
 
+def test_memory_compaction_writes_summary(client, runtime) -> None:
+    """三级记忆：窗口溢出后，被挤出的轮次要落进 session.summary 并持久化。"""
+    runtime.settings.memory_max_turns = 1
+    runtime.settings.memory_window_tokens = 1
+
+    r = client.post("/chat", json={"sessionId": "s_mem", "message": "第一轮"})
+    read_events(client, r.json()["data"]["streamId"])
+
+    path = runtime.settings.resolved_session_dir / "s_mem.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    assert data["summary"], "窗口溢出后摘要必须非空"
+    assert "第一轮" in data["summary"]
+    assert data["archived_turns"] >= 1
+    assert len(data["recent_turns"]) <= 1
+
+
+def test_explicit_fact_is_persisted_to_long_term_memory(client, runtime) -> None:
+    """L3：用户说"记住 …"要落到 facts，后续轮次会注入。"""
+    r = client.post(
+        "/chat",
+        json={"sessionId": "s_fact", "message": "记住：我周三到周五不可用"},
+    )
+    read_events(client, r.json()["data"]["streamId"])
+
+    path = runtime.settings.resolved_session_dir / "s_fact.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    assert any("周三到周五" in f["text"] for f in data["facts"])
+
+
 def test_clarify_question_is_not_saved_in_history_current_behavior(client, runtime) -> None:
     """BUG-SP2-07：clarify 轮次不写 assistant 消息，下一轮看不到上一句问了什么。"""
     r = client.post("/chat", json={"sessionId": "s_clar", "message": "把那个搞一下"})

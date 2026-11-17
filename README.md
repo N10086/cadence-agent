@@ -297,6 +297,32 @@ Agent 进程内的 async 函数，通过 httpx 调 Core REST，不是任意代�
 
 ---
 
+## 三级记忆（滑动窗口）
+
+```
+L1 短期  recent_turns   按 token 预算（默认 800）从最新往回装，至少留 1 轮
+L2 中期  summary        被窗口挤出去的轮次压成滚动摘要（抽取式，不调模型）
+L3 长期  facts          稳定事实（"记住…"、偏好/约束），去重、上限 10 条
+```
+
+注入顺序：`【会话摘要】→【长期记忆】→【已确认的约束】→ 最近对话`。
+
+| 行为 | 规则 |
+|---|---|
+| 窗口怎么滑 | 从最新往回装，超 `MEMORY_WINDOW_TOKENS` 或 `MEMORY_MAX_TURNS` 就停 |
+| 被挤出的去哪 | 压成 `用户: …；助手: …` 进 L2 摘要，超 300 字保留**最近**部分 |
+| 长期记忆怎么来 | 用户说"记住 …"/"记一下 …"，或 `remember_constraint()` |
+| 持久化 | 跟会话一起落 JSON（TTL 30 分钟），旧文件缺字段也能读 |
+| 观测 | trace 里 `GUARD memory.compact`（挤出条数/摘要长度）、`memory.fact` |
+
+**边界**：不做向量检索、不做跨会话记忆；摘要用抽取式而不是模型生成——这两点是刻意的，
+向量记忆要引入 embedding 和召回排序，收益在长对话场景，本项目的会话通常 2–5 轮。
+
+代码：[`runtime/memory.py`](services/cadence-agent/src/cadence/runtime/memory.py)，
+接入点 [`chat.py`](services/cadence-agent/src/cadence/api/chat.py) 的 finally（每轮结束压缩一次）。
+
+---
+
 ## 已知限制
 
 - **单 worker**：会话锁、SSE 缓冲都在进程内，多副本需要会话粘滞或外部存储，本版不做。
